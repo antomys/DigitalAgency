@@ -17,6 +17,6 @@ namespace DigitalAgency.Bll.Services.Interfaces
         Task DeleteClientAsync(int id);
         Task DeleteExecutorAsync(int id);
         Task UpdateClientAsync(ClientModel client);
-        Task UpdateExecutorAsync(Executor executor);
+        Task UpdateExecutorAsync(ExecutorModel executor);
     }
 }

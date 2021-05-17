@@ -66,7 +66,7 @@ namespace DigitalAgency.Bll.Services
         {
             throw new System.NotImplementedException();
         }
-        public Task UpdateExecutorAsync(Executor executor)
+        public Task UpdateExecutorAsync(ExecutorModel executor)
         {
             throw new System.NotImplementedException();
         }

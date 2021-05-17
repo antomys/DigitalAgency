@@ -55,7 +55,7 @@ namespace DigitalAgency.Api.Common
             if (exception is KeyNotFoundException) code = HttpStatusCode.NotFound;
             else if (exception is DbException) code = HttpStatusCode.BadRequest;
             else code = HttpStatusCode.BadRequest;
-            _logger.LogDebug("Time request{Time}", DateTime.UtcNow);
+            _logger.LogDebug($"Time request{DateTime.UtcNow}\n{exception.Message}");
            
             context.Response.ContentType = "application/json";
             context.Response.StatusCode = (int)code;

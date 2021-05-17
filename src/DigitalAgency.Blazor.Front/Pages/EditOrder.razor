@@ -1,6 +1,7 @@
 ﻿@page "/editOrder/{id}"
 @using System.Text
-@using DigitalAgency.Dal.Entities
+@using DigitalAgency.Bll.Models
+@using DigitalAgency.Bll.Models.Enums
 @using Microsoft.AspNetCore.Components
 @using Newtonsoft.Json
 @using JsonSerializer = System.Text.Json.JsonSerializer
@@ -32,12 +33,12 @@ else
         <td><input disabled="true"@bind="Order.Project.ProjectName"/></td>
     </tr>
     <tr>
-        <td>Mechanic: </td>
-        <select class="custom-select" @onchange="OnMechanicValueChanged" title="Region is required ">
+        <td>Executor: </td>
+        <select class="custom-select" @onchange="OnExecutorValueChanged" title="Select Executor">
             <option value="Select" selected disabled="disabled">@Order.Executor.FirstName @Order.Executor.LastName</option>
             @foreach (var client in Executors)
             {
-                <option value="@client.Id">@client.FirstName @client.LastName</option>
+                <option value="@client">@client.FirstName @client.LastName</option>
             }
         </select>
     </tr>
@@ -47,7 +48,13 @@ else
     </tr>
     <tr>
         <td>State</td>
-        <td><input @bind="State"/></td>
+        <select class="custom-select" @onchange="OnStateValueChanged" title="Select State">
+            <option value="Select" selected disabled="disabled">@Enum.GetName(Order.StateEnum)</option>
+            @foreach (var state in Enum.GetNames(typeof(OrderStateEnum)))
+            {
+                <option value="@state">@state</option>
+            }
+        </select>
     </tr>
 </table>
 <p />
@@ -58,29 +65,38 @@ else
 
 @code {
     
-    protected Order Order { get; set; }
-    protected List<Executor> Executors{get; set; }
-    protected string State { get; set; }
+    protected OrderModel Order { get; set; }
+    protected List<ExecutorModel> Executors{get; set; }
+    protected OrderStateEnum State { get; set; }
     protected string Alert { get; set; }
     
     [Parameter]
     public DateTime ScheduledDate { get; set; }
     [Parameter]  
-    public EventCallback < DateTime> DateChanged { get; set; } 
+    public EventCallback <DateTime> DateChanged { get; set; } 
 
     [Parameter]
     public string Id { get; set; }
     
     [Parameter]  
-    public string ValueMechanic { get; set; }  
+    public ExecutorModel ValueExecutor { get; set; }  
     [Parameter]  
-    public EventCallback < string > ValueMechanicChanged { get; set; }  
+    public EventCallback <ExecutorModel> ValueExecutorChanged { get; set; }  
+    
+    [Parameter]  
+    public OrderStateEnum ValueState { get; set; }  
+    [Parameter]  
+    public EventCallback <OrderStateEnum> ValueStateChanged { get; set; }  
     
     
-    private Task OnMechanicValueChanged(ChangeEventArgs e) {  
-        ValueMechanic = e.Value.ToString();
-        return ValueMechanicChanged.InvokeAsync(ValueMechanic); 
+    private Task OnExecutorValueChanged(ChangeEventArgs e) {  
+        ValueExecutor = e.Value as ExecutorModel;
+        return ValueExecutorChanged.InvokeAsync(ValueExecutor); 
     }  
+    private Task OnStateValueChanged(ChangeEventArgs e) {  
+        ValueState = (OrderStateEnum)e.Value;
+        return ValueStateChanged.InvokeAsync(ValueState); 
+    }
     
     protected override async Task OnInitializedAsync()
     {
@@ -89,14 +105,14 @@ else
 
         var info = await result.Content.ReadAsStringAsync();
         
-        var deserialized = JsonConvert.DeserializeObject<List<Order>>(info);
-        Order = deserialized.First(x=> x.Id.ToString() == Id);
+        var deserialized = JsonConvert.DeserializeObject<List<OrderModel>>(info);
+        Order = deserialized?.First(x=> x.Id.ToString() == Id);
         ScheduledDate = Order.ScheduledTime.Date;
         State = Order.StateEnum;
         
         result = await client.GetAsync("http://localhost:8443/Client/executor");
         info = await result.Content.ReadAsStringAsync();
-        var newDeserialized = JsonConvert.DeserializeObject<List<Executor>>(info);
+        var newDeserialized = JsonConvert.DeserializeObject<List<ExecutorModel>>(info);
         Executors = newDeserialized?.ToList();
     }
     
@@ -105,11 +121,11 @@ else
         Alert = " ";
         var client = _clientFactory.CreateClient();
         
-        var serviceOrder = new Order
+        var serviceOrder = new OrderModel
         {
-            ClientId = Order.ClientId,
-            ExecutorId = int.Parse(ValueMechanic),
-            ProjectId = Order.ProjectId,
+            Client = Order.Client,
+            Executor = ValueExecutor,
+            Project = Order.Project,
             ScheduledTime = Order.ScheduledTime,
             CreationDate = Order.CreationDate,
             StateEnum = State

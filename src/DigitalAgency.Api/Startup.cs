@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Reflection;
 using DigitalAgency.Api.Common;
 using DigitalAgency.Api.Extensions;
@@ -9,6 +10,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.OpenApi.Models;
 
 namespace DigitalAgency.Api
 {
@@ -30,8 +32,38 @@ namespace DigitalAgency.Api
             services.AddControllers()
                 .AddNewtonsoftJson(x => x.SerializerSettings.ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore);
             services.AddApplicationInsightsTelemetry()
-                .AddServices(Configuration);
+                .AddServices(Configuration)
+                .AddStorages();
+            services
+                .AddSwaggerGen(c =>
+                {
+                    c.SwaggerDoc("v1", new OpenApiInfo {Title = "My API", Version = "v1"});
+                    c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+                    {
+                        Name = "Authorization",
+                        In = ParameterLocation.Header,
+                        Type = SecuritySchemeType.ApiKey
 
+                    });
+                    c.AddSecurityRequirement(new OpenApiSecurityRequirement()
+                    {
+                        {
+                            new OpenApiSecurityScheme
+                            {
+                                Reference = new OpenApiReference
+                                {
+                                    Type = ReferenceType.SecurityScheme,
+                                    Id = "Bearer"
+
+                                }
+
+                            },
+                            new List<string>()
+
+                        }
+
+                    });
+                });
         }
         
         public static void Configure(IApplicationBuilder app, IWebHostEnvironment env)

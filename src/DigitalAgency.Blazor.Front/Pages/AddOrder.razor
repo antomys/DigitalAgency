@@ -1,6 +1,6 @@
 ﻿@page "/addorder"
 @using System.Text
-@using DigitalAgency.Dal.Entities
+@using DigitalAgency.Bll.Models
 @using Newtonsoft.Json
 @using JsonSerializer = System.Text.Json.JsonSerializer
 @using Task = System.Threading.Tasks.Task
@@ -68,9 +68,9 @@ else
     <p />
 
 @code {
-    protected List<Client> Clients { get; set; }
-    protected List<Executor> Executors{get; set; }
-    protected List<Project> Projects { get; set; }
+    protected List<ClientModel> Clients { get; set; }
+    protected List<ExecutorModel> Executors{get; set; }
+    protected List<ProjectModel> Projects { get; set; }
     protected string Alert { get; set; }
     
     [Parameter]
@@ -100,16 +100,16 @@ else
 
         var info = await result.Content.ReadAsStringAsync();
         ScheduledDate = DateTime.Now;
-        var deserialized = JsonConvert.DeserializeObject<List<Client>>(info);
+        var deserialized = JsonConvert.DeserializeObject<List<ClientModel>>(info);
         Clients = deserialized?.ToList();
         ScheduledDate = DateTime.Now;
 
         result = await client.GetAsync("http://localhost:8443/Client/executor");
         info = await result.Content.ReadAsStringAsync();
-        var newDeserialized = JsonConvert.DeserializeObject<List<Executor>>(info);
+        var newDeserialized = JsonConvert.DeserializeObject<List<ExecutorModel>>(info);
         Executors = newDeserialized?.ToList();
         
-        Projects = new List<Project>();
+        Projects = new List<ProjectModel>();
     }
     
     private Task OnClientValueChanged(ChangeEventArgs e) {  
@@ -118,7 +118,7 @@ else
         var client = _clientFactory.CreateClient();
         var result = client.GetAsync("http://localhost:8443/Project").Result;
         var info = result.Content.ReadAsStringAsync().Result;
-        var newDeserialized = JsonConvert.DeserializeObject<List<Project>>(info);
+        var newDeserialized = JsonConvert.DeserializeObject<List<ProjectModel>>(info);
         Projects = newDeserialized.Where(x=> x.OwnerId.ToString() == ValueClient).ToList();
         return ValueClientChanged.InvokeAsync(ValueClient); 
     }  
@@ -137,14 +137,14 @@ else
         var client = _clientFactory.CreateClient();
         //ScheaduleViewModel newOrder = new ScheaduleViewModel { FirstName = FirstName, MiddleName = MiddleName, LastName = LastName, ClientPhone = ClientPhone, CarMake = CarMake, CarModel = CarModel, CarPlate = CarPlate, CarColor = CarColor, ScheduledDate = ScheduledDate, };
         
-        var serviceOrder = new Order
+        var serviceOrder = new OrderModel
         {
-            ClientId = int.Parse(ValueClient),
-            ExecutorId = int.Parse(ValueMechanic),
-            ProjectId = int.Parse(ValueCar),
+            Client = ValueClient,
+            Executor = ValueMechanic,
+            Project = ValueCar,
             ScheduledTime = ScheduledDate,
             CreationDate = DateTime.Now,
-            StateEnum = "New"
+            StateEnum = State
         };
         
         var content = new StringContent(JsonSerializer.Serialize(serviceOrder), Encoding.UTF8, "application/json");

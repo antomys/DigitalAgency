@@ -9,7 +9,7 @@ using Microsoft.Extensions.Logging;
 
 namespace DigitalAgency.Api.Controllers
 {
-    [Route("[controller]")]
+    [Route("[controller]/[action]")]
     [ApiController]
     public class ProjectController : ControllerBase
     {
@@ -49,7 +49,7 @@ namespace DigitalAgency.Api.Controllers
             return Ok(project);
         }
 
-        [HttpDelete("{id:int}")]
+        [HttpDelete]
         public async Task<IActionResult> DeleteProject(int id)
         {
             _logger.LogInformation("Star logging - method DeleteCar controller ProjectContoller");

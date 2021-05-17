@@ -6,24 +6,25 @@ using DigitalAgency.Api.Validate;
 using DigitalAgency.Bll.Models;
 using DigitalAgency.Bll.Services.Interfaces;
 using DigitalAgency.Dal.Entities;
+using FluentValidation;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 
 namespace DigitalAgency.Api.Controllers
 {
-    [Route("[controller]")]
+    [Route("[controller]/[action]")]
     [ApiController]
     public class ClientController : ControllerBase
     {
         private readonly IClientService _clientService;
         private readonly ILogger<ClientController> _logger;
-        private readonly ClientModelValidator _clientValidator;
-        private readonly ExecutorModelValidator _executorValidator;
+        private readonly IValidator<ClientModel> _clientValidator;
+        private readonly IValidator<ExecutorModel> _executorValidator;
 
         public ClientController(IClientService clientService,
             ILogger<ClientController> logger,
-            ClientModelValidator clientValidator, 
-            ExecutorModelValidator executorValidator)
+            IValidator<ClientModel> clientValidator, 
+            IValidator<ExecutorModel> executorValidator)
         {
             _clientService = clientService;
             _logger = logger;
@@ -40,7 +41,7 @@ namespace DigitalAgency.Api.Controllers
             return Ok(result);
         }
         
-        [HttpGet("executor")]
+        [HttpGet]
         public async Task<IActionResult> GetExecutor()
         {
             _logger.LogInformation("Star logging - method GetClientAsync controller ClientContoller");
@@ -62,7 +63,7 @@ namespace DigitalAgency.Api.Controllers
             _logger.LogDebug("Time request {Time}", DateTime.UtcNow);
             return Ok(clientModel);
         }
-        [HttpPost("executor")]
+        [HttpPost]
         public async Task<ActionResult<ExecutorModel>> PostExecutor(ExecutorModel executor)
         {
             _logger.LogInformation("Star logging - method PostClient controller ClientContoller");
@@ -76,7 +77,7 @@ namespace DigitalAgency.Api.Controllers
             return Ok(executor);
         }
 
-        [HttpDelete("{id:int}")]
+        [HttpDelete]
         public async Task<IActionResult> DeleteClient(int id)
         {
             _logger.LogInformation("Star logging - method DeleteClient controller ClientContoller");
@@ -85,7 +86,7 @@ namespace DigitalAgency.Api.Controllers
             return Ok(id);
         }
         
-        [HttpDelete("executor/{id:int}")]
+        [HttpDelete]
         public async Task<IActionResult> DeleteExecutor(int id)
         {
             _logger.LogInformation("Star logging - method DeleteClient controller ClientContoller");
@@ -107,8 +108,8 @@ namespace DigitalAgency.Api.Controllers
             _logger.LogDebug("Time request {Time}", DateTime.UtcNow);
             return Ok(client);
         }
-        [HttpPut("executor")]
-        public async Task<ActionResult<ExecutorModel>> PutExecutor(Executor executor)
+        [HttpPut]
+        public async Task<ActionResult<ExecutorModel>> PutExecutor(ExecutorModel executor)
         {
             _logger.LogInformation("Star logging - method PutClient controller ClientContoller " + JsonSerializer.Serialize(executor));
             await _clientService.UpdateExecutorAsync(executor);

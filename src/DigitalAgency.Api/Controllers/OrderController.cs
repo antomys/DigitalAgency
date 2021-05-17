@@ -3,14 +3,13 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using DigitalAgency.Bll.Models;
 using DigitalAgency.Bll.Services.Interfaces;
-using DigitalAgency.Dal.Entities;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 
 namespace DigitalAgency.Api.Controllers
 {
     [ApiController]
-    [Route("[controller]")]
+    [Route("[controller]/[action]")]
 
     public class OrderController : ControllerBase
     {
@@ -33,7 +32,7 @@ namespace DigitalAgency.Api.Controllers
             return Ok(result);
         }
 
-        [HttpPost("createOrder")]
+        [HttpPost]
         public async Task<IActionResult> CreateOrder(OrderModel order)
         {
             _logger.LogInformation("Star logging - method ScheduleService controller ServiceOrderContoller");

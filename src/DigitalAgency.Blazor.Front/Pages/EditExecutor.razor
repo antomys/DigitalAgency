@@ -1,7 +1,8 @@
 ﻿@page "/editexecutor/{id}"
 @using System.Text
 @using System.Text.Json
-@using DigitalAgency.Dal.Entities
+@using DigitalAgency.Bll.Models
+@using DigitalAgency.Bll.Models.Enums
 @using Task = System.Threading.Tasks.Task
 @inject IHttpClientFactory _executorFactory;
 
@@ -50,12 +51,12 @@ else
 <p />
 
 @code {
-    protected Executor Executor { get; set; }
+    protected ExecutorModel Executor { get; set; }
     protected string FirstName { get; set; }
     protected string MiddleName { get; set; }
     protected string LastName { get; set; }
     protected string PhoneNumber { get; set; }
-    protected string Position { get; set; }
+    protected PositionsEnum Position { get; set; }
     protected string Alert { get; set; }
     protected string Info;
 
@@ -73,19 +74,19 @@ else
         {
             PropertyNameCaseInsensitive = true,
         };
-        var deserialized = JsonSerializer.Deserialize<List<Executor>>(Info, options);
+        var deserialized = JsonSerializer.Deserialize<List<ExecutorModel>>(Info, options);
         Executor = deserialized?.Where(x => x.Id.ToString() == Id).First();
         FirstName = Executor?.FirstName;
         LastName = Executor?.LastName;
         MiddleName = Executor?.MiddleName;
         PhoneNumber = Executor?.PhoneNumber;
-        Position = Executor?.Position;
+        Position = Executor.Position;
     }
 
     protected async Task UpdateClientAsync()
     {
         Alert = " ";
-        if (FirstName == string.Empty || MiddleName == string.Empty || LastName == string.Empty || PhoneNumber == string.Empty || Position == string.Empty)
+        if (FirstName == string.Empty || MiddleName == string.Empty || LastName == string.Empty || PhoneNumber == string.Empty)
         {
             Alert = "Fill all fields!";
         }
@@ -93,7 +94,7 @@ else
         {
             var mechanic = _executorFactory.CreateClient();
         
-            var newMechanic = new Executor()
+            var newMechanic = new ExecutorModel
             { 
                 Id = Executor.Id, 
                 FirstName = FirstName, 
