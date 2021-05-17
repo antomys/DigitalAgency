@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using DigitalAgency.Bll.Models;
 
@@ -5,7 +6,7 @@ namespace DigitalAgency.Bll.Services.Interfaces
 {
     public interface IProjectService
     {
-        Task<object> GetProjectAsync();
+        Task<List<ProjectModel>> GetProjectsAsync();
         Task CreateProjectAsync(ProjectModel project);
         Task DeleteProjectAsync(int id);
         Task UpdateProjectAsync(ProjectModel project);

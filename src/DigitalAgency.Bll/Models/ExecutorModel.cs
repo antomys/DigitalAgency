@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using DigitalAgency.Dal.Entities.Enums;
+using PositionsEnum = DigitalAgency.Bll.Models.Enums.PositionsEnum;
 
 namespace DigitalAgency.Bll.Models
 {

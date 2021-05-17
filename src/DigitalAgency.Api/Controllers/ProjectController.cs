@@ -30,7 +30,7 @@ namespace DigitalAgency.Api.Controllers
         public async Task<IActionResult> GetProject()
         {
             _logger.LogInformation("Star logging - method GetCar controller ProjectContoller");
-            var result = await _projectService.GetProjectAsync();
+            var result = await _projectService.GetProjectsAsync();
             _logger.LogDebug("Time request {Time}",  DateTime.UtcNow);
             return Ok(result);
         }

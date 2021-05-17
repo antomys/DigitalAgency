@@ -31,7 +31,13 @@
     </tr>
     <tr>
         <td>Position:</td>
-        <td><input @bind="Position"/></td>
+        <select class="custom-select" @onchange="OnPositionValueChanged" title="Region is required ">
+            <option value="Select" selected disabled="disabled">Choose Car</option>
+            @foreach (var car in Projects)
+            {
+                <option value="@car.Id">@car.ProjectName @car.ProjectDescription</option>
+            }
+        </select> 
     </tr>
 </table>
 <p />
@@ -41,12 +47,12 @@
 
 @code 
 {
-    protected string FirstName { get; set; }
-    protected string MiddleName { get; set; }
-    protected string LastName { get; set; }
-    protected PositionsEnum Position { get; set; }
-    protected string PhoneNumber { get; set; }
-    protected string Alert { get; set; }
+    private string FirstName { get; set; }
+    private string MiddleName { get; set; }
+    private string LastName { get; set; }
+    private PositionsEnum Position { get; set; }
+    private string PhoneNumber { get; set; }
+    private string Alert { get; set; }
 
     
     protected async Task AddNewMechanic()

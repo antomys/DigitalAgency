@@ -1,4 +1,5 @@
 using DigitalAgency.Dal.Entities.Enums;
+using OrderStateEnum = DigitalAgency.Bll.Models.Enums.OrderStateEnum;
 
 namespace DigitalAgency.Bll.Models
 {

@@ -1,5 +1,7 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Threading.Tasks;
 using DigitalAgency.Dal.Context;
 using DigitalAgency.Dal.Entities;
@@ -28,6 +30,18 @@ namespace DigitalAgency.Dal.Storages
         {
             return await _context.Projects.OrderBy(x=> x.Id).Where(x => x.OwnerId == ownerId).LastOrDefaultAsync();
         }
+        public async Task<List<Project>> GetProjectsAsync(Expression<Func<Project, bool>> expression)
+        {
+            return await _context.Projects.Where(expression)
+                .Include(x => x.Orders)
+                .ThenInclude(x => x.Client).ToListAsync();
+        }
+        public async Task<Project> GetProjectAsync(Expression<Func<Project, bool>> expression)
+        {
+            return await _context.Projects.Where(expression)
+                .Include(x => x.Orders)
+                .ThenInclude(x => x.Client).FirstOrDefaultAsync();
+        }
         public async Task DeleteProjectAsync(int id)
         {
             var client = await _context.Projects.FindAsync(id);
@@ -35,7 +49,7 @@ namespace DigitalAgency.Dal.Storages
             _context.Projects.Remove(client);
             await _context.SaveChangesAsync();
         }
-        public async Task<List<Project>> GetProjectAsync()
+        public async Task<List<Project>> GetProjectsAsync()
         {
             return await _context.Projects.ToListAsync();
         }
