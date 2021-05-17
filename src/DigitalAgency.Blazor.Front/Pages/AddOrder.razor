@@ -144,7 +144,7 @@ else
             ProjectId = int.Parse(ValueCar),
             ScheduledTime = ScheduledDate,
             CreationDate = DateTime.Now,
-            State = "New"
+            StateEnum = "New"
         };
         
         var content = new StringContent(JsonSerializer.Serialize(serviceOrder), Encoding.UTF8, "application/json");

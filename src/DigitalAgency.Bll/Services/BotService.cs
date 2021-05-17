@@ -1,8 +1,10 @@
-﻿using System.Collections.Generic;
+﻿/*
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using DigitalAgency.Bll.Services.Bot;
 using DigitalAgency.Bll.Services.Bot.Interfaces;
 using DigitalAgency.Bll.Services.Interfaces;
+using DigitalAgency.Dal.Storages.Interfaces;
 using Telegram.Bot;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
@@ -12,33 +14,33 @@ namespace DigitalAgency.Bll.Services
     public class BotService : IBotService
     {
         private readonly ITelegramBotClient _telegram;
-        private readonly IClientService _clientService;
+        private readonly IClientStorage _clientStorage;
         private readonly IProcessCallbacks _processCallbacks;
         private readonly IProcessReply _processReply;
-        private readonly IExecutorService _executorService;
+        private readonly IExecutorStorage _executorStorage;
 
 
         public BotService(
             ITelegramBotClient telegram,
-            IClientService clientService,
+            IClientStorage clientStorage,
             IProcessCallbacks processCallbacks, 
             IProcessReply processReply, 
-            IExecutorService executorService)
+            IExecutorStorage executorStorage)
         {
             _telegram = telegram;
-            _clientService = clientService;
+            _clientStorage = clientStorage;
             _processCallbacks = processCallbacks;
             _processReply = processReply;
-            _executorService = executorService;
+            _executorStorage = executorStorage;
         }
         public async Task ProcessMessageAsync(Update update)
         {
             if (update.Type is UpdateType.Unknown)
                 return;
             var thisUser =
-                await _clientService.GetClientAsync(client => client.TelegramId == update.CallbackQuery.From.Id);
+                await _clientStorage.GetClientAsync(client => client.TelegramId == update.CallbackQuery.From.Id);
             var thisExecutor =
-                await _executorService.GetExecutorAsync(client => client.TelegramId == update.CallbackQuery.From.Id);
+                await _executorStorage.GetExecutorAsync(client => client.TelegramId == update.CallbackQuery.From.Id);
             
             if (update.CallbackQuery is not null)
             {
@@ -64,7 +66,7 @@ namespace DigitalAgency.Bll.Services
             var receivedMessage = update.Message;
             var sender = receivedMessage.From;
             
-            var thisClient = await _clientService.GetClientAsync(client => client.TelegramId == sender.Id);
+            var thisClient = await _clientStorage.GetClientAsync(client => client.TelegramId == sender.Id);
             
             if (receivedMessage.ReplyToMessage is not null && !string.IsNullOrEmpty(receivedMessage.Text))
             {
@@ -76,7 +78,7 @@ namespace DigitalAgency.Bll.Services
                 await _telegram.SendTextMessageAsync(
                     receivedMessage.Chat.Id, $"Thank you, {sender.FirstName}!\n" + 
                                              $"Your phone number is {receivedMessage.Contact.PhoneNumber}");
-                if (await _clientService.CreateNewClient(receivedMessage))
+                if (await _clientStorage.CreateNewClient(receivedMessage))
                 {
                     await EditClient(receivedMessage.Chat.Id);
                 }
@@ -94,3 +96,4 @@ namespace DigitalAgency.Bll.Services
         }
     }
 }
+*/

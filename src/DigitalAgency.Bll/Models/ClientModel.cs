@@ -1,4 +1,6 @@
-﻿namespace DigitalAgency.Bll.Models
+﻿using System.Collections.Generic;
+
+namespace DigitalAgency.Bll.Models
 {
     public class ClientModel
     {
@@ -10,13 +12,8 @@
         public bool IsMechanic { get; set; }
         public long TelegramId { get; set; }
         public long ChatId { get; set; }
-
-        public override string ToString()
-        {
-            return $"First Name: {FirstName}\n" +
-                   $"Last Name: {LastName}\n" +
-                   $"Phone Number: {PhoneNumber}\n" +
-                   $"Telegram Nickname: {MiddleName}";
-        }
+        
+        public List<OrderModel> Orders { get; set; }
+        public List<ProjectModel> Projects { get; set; }
     }
 }

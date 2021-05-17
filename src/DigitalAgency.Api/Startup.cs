@@ -1,15 +1,17 @@
 using System;
 using System.Collections.Generic;
 using System.Reflection;
-using DigitalAgency.Api.AutoMapper;
 using DigitalAgency.Api.Common;
 using DigitalAgency.Api.Validate;
 using DigitalAgency.Bll;
+using DigitalAgency.Bll.AutoMapper;
 using DigitalAgency.Bll.DTOs;
 using DigitalAgency.Bll.Services;
 using DigitalAgency.Bll.Services.Interfaces;
 using DigitalAgency.Dal.Context;
 using DigitalAgency.Dal.Entities;
+using DigitalAgency.Dal.Storages;
+using DigitalAgency.Dal.Storages.Interfaces;
 using FluentValidation;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -42,10 +44,10 @@ namespace DigitalAgency.Api
             services.AddControllers().AddNewtonsoftJson(x => x.SerializerSettings.ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore);
             services.AddApplicationInsightsTelemetry();
             //services.AddTransient<IBotService, BotService>();
-            services.AddTransient<IClientService, ClientService>();
-            services.AddTransient<IExecutorService, ExecutorService>();
-            services.AddTransient<IProjectService, ProjectService>();
-            services.AddTransient<IOrderService, OrderService>();
+            services.AddTransient<IClientStorage, ClientStorage>();
+            services.AddTransient<IExecutorStorage, ExecutorStorage>();
+            services.AddTransient<IProjectStorage, ProjectStorage>();
+            services.AddTransient<IOrderStorage, OrderStorage>();
             //services.AddTransient<IBotService, BotService>();
             services.Configure<BotConfiguration>(Configuration.GetSection("BotConfiguration"))
                 .AddSingleton<ITelegramBotClient,TelegramBotClient>(provider => { 

@@ -92,7 +92,7 @@ else
         var deserialized = JsonConvert.DeserializeObject<List<Order>>(info);
         Order = deserialized.First(x=> x.Id.ToString() == Id);
         ScheduledDate = Order.ScheduledTime.Date;
-        State = Order.State;
+        State = Order.StateEnum;
         
         result = await client.GetAsync("http://localhost:8443/Client/executor");
         info = await result.Content.ReadAsStringAsync();
@@ -112,7 +112,7 @@ else
             ProjectId = Order.ProjectId,
             ScheduledTime = Order.ScheduledTime,
             CreationDate = Order.CreationDate,
-            State = State
+            StateEnum = State
         };
         
         var content = new StringContent(JsonSerializer.Serialize(serviceOrder), Encoding.UTF8, "application/json");

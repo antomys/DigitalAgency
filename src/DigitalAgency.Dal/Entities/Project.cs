@@ -17,7 +17,7 @@ namespace DigitalAgency.Dal.Entities
         
         [ForeignKey("OwnerId")]
         public virtual Client Client { get; set; }
-        public virtual ICollection<Order> ServiceOrders { get; set; }
+        public virtual ICollection<Order> Orders { get; set; }
         
     }
 }

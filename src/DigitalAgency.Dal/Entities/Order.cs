@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using DigitalAgency.Dal.Entities.Enums;
 
 namespace DigitalAgency.Dal.Entities
 {
@@ -22,8 +23,9 @@ namespace DigitalAgency.Dal.Entities
         public virtual Project Project { get; set; }
         public DateTime CreationDate { get; set; }
         public DateTime ScheduledTime { get; set; }
-        public string State { get; set; }
-        public virtual ICollection<OrderTask> OrderParts { get; set; }
+        public OrderStateEnum StateEnum { get; set; }
+        
+        public virtual ICollection<Task> Tasks { get; set; }
         
     }
 }

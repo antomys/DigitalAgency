@@ -1,4 +1,4 @@
-using System;
+/*using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using AutoMapper;
@@ -6,6 +6,7 @@ using DigitalAgency.Bll.Models;
 using DigitalAgency.Bll.Services.Bot.Interfaces;
 using DigitalAgency.Bll.Services.Interfaces;
 using DigitalAgency.Dal.Entities;
+using DigitalAgency.Dal.Storages.Interfaces;
 using Microsoft.Extensions.Options;
 using Telegram.Bot;
 using Telegram.Bot.Types;
@@ -16,23 +17,23 @@ namespace DigitalAgency.Bll.Services.Bot
 {
     public class ProcessCallbacks : IProcessCallbacks
     {
-        private readonly IClientService _clientService;
-        private readonly IOrderService _orderService;
+        private readonly IClientStorage _clientStorage;
+        private readonly IOrderStorage _orderStorage;
         private readonly ITelegramBotClient _telegram;
-        private readonly IProjectService _projectService;
+        private readonly IProjectStorage _projectStorage;
         private readonly BotConfiguration _botConfiguration;
         public ProcessCallbacks(
             ITelegramBotClient telegram, 
-            IOrderService orderService, 
-            IClientService clientService, 
+            IOrderStorage orderStorage, 
+            IClientStorage clientStorage, 
             IOptions<BotConfiguration> botConfiguration, 
-            IProjectService project)
+            IProjectStorage project)
         {
             _telegram = telegram;
-            _orderService = orderService;
-            _clientService = clientService;
+            _orderStorage = orderStorage;
+            _clientStorage = clientStorage;
             _botConfiguration = botConfiguration.Value;
-            _projectService = project;
+            _projectStorage = project;
         }
         //Only for Client
         public async Task ProcessCreateOrderCallback(Update update)
@@ -40,7 +41,7 @@ namespace DigitalAgency.Bll.Services.Bot
             var typeAndId = update.CallbackQuery.Data.Split(';');
             var id = int.Parse(typeAndId[1]);
             var mapper = new Mapper(MappingConfig.GetMapper());
-            var thisClient = await _clientService.GetClientAsync(client => client.TelegramId == update.CallbackQuery.From.Id);
+            var thisClient = await _clientStorage.GetClientAsync(client => client.TelegramId == update.CallbackQuery.From.Id);
 
             var backKeyboard = KeyboardMessages.DefaultKeyboardMessage(new[] {"Back"});
             var chatId = update.CallbackQuery.Message.Chat.Id;
@@ -49,8 +50,8 @@ namespace DigitalAgency.Bll.Services.Bot
             {
                 case "please choose a project to order":
                 {
-                    var newOrder = new Order{ClientId = thisClient.Id, ProjectId = id, CreationDate = DateTime.Now, State = "New"};
-                    await _orderService.CreateOrderAsync(newOrder);
+                    var newOrder = new Order{ClientId = thisClient.Id, ProjectId = id, CreationDate = DateTime.Now, StateEnum = "New"};
+                    await _orderStorage.CreateOrderAsync(newOrder);
 
                     await _telegram.SendTextMessageAsync(chatId, "Please enter scheduled time for order",replyMarkup:new ForceReplyMarkup());
                     await _telegram.SendTextMessageAsync(chatId, "Format: yyyy-mm-dd");
@@ -61,11 +62,11 @@ namespace DigitalAgency.Bll.Services.Bot
                     await _telegram.SendTextMessageAsync(chatId, "Please select what to change");
                     var dict = new ConcurrentDictionary<string, string>();
 
-                    var thisOrder = await _orderService.GetOrderByIdAsync(id);
+                    var thisOrder = await _orderStorage.GetOrderAsync(id);
 
                     var mapped = mapper.Map<ServiceOrderModel>(thisOrder);
                     mapped.Mechanic = new Client();
-                    mapped.Mechanic = await _clientService.GetClientByIdAsync(thisOrder.ExecutorId);
+                    mapped.Mechanic = await _clientStorage.GetClientByIdAsync(thisOrder.ExecutorId);
                     
                     var excluded = new List<string>{"Schedule Date","State", "Delete"};
                     foreach (var property in excluded)
@@ -80,11 +81,11 @@ namespace DigitalAgency.Bll.Services.Bot
                 }
                 case "edit order schedule date":
                 {
-                    var thisOrder = await _orderService.GetOrderByIdAsync(id);
+                    var thisOrder = await _orderStorage.GetOrderAsync(id);
 
                     var mapped = mapper.Map<ServiceOrderModel>(thisOrder);
                     mapped.Mechanic = new Client();
-                    mapped.Mechanic = await _clientService.GetClientByIdAsync(thisOrder.ExecutorId);
+                    mapped.Mechanic = await _clientStorage.GetClientByIdAsync(thisOrder.ExecutorId);
                     await _telegram.SendTextMessageAsync(chatId, $"[{mapped.Id}]\n"+mapped, replyMarkup:new ForceReplyMarkup());
                     await _telegram.SendTextMessageAsync(chatId, "Please enter new schedule date");
                     await _telegram.SendTextMessageAsync(chatId, "Remember, Format: yyyy-mm-dd");
@@ -93,18 +94,18 @@ namespace DigitalAgency.Bll.Services.Bot
                 }
                 case "edit order state":
                 {
-                    var thisOrder = await _orderService.GetOrderByIdAsync(id);
+                    var thisOrder = await _orderStorage.GetOrderAsync(id);
 
                     var mapped = mapper.Map<ServiceOrderModel>(thisOrder);
                     mapped.Mechanic = new Client();
-                    mapped.Mechanic = await _clientService.GetClientByIdAsync(thisOrder.ExecutorId);
+                    mapped.Mechanic = await _clientStorage.GetClientByIdAsync(thisOrder.ExecutorId);
                     await _telegram.SendTextMessageAsync(chatId, $"[{mapped.Id}]\n"+mapped, replyMarkup:new ForceReplyMarkup());
                     await _telegram.SendTextMessageAsync(chatId, "Please enter new state");
                     return;
                 }
                 case "edit order delete":
                 {
-                    await _orderService.DeleteOrderAsync(id);
+                    await _orderStorage.DeleteOrderAsync(id);
                     await _telegram.SendTextMessageAsync(chatId, "Successfully deleted!", replyMarkup: KeyboardMessages.DefaultKeyboardMessage(_botConfiguration.CommandsMechanic));
                     return;
                 }
@@ -117,7 +118,7 @@ namespace DigitalAgency.Bll.Services.Bot
             var typeAndId = update.CallbackQuery.Data.Split(';');
             
             var id = int.Parse(typeAndId[1]);
-            var thisClient = await _clientService.GetClientAsync(client => client.TelegramId == update.CallbackQuery.From.Id);
+            var thisClient = await _clientStorage.GetClientAsync(client => client.TelegramId == update.CallbackQuery.From.Id);
             
             var chatId = update.CallbackQuery.Message.Chat.Id;
             var backKeyboard = KeyboardMessages.DefaultKeyboardMessage(new[] {"Back"});
@@ -126,10 +127,10 @@ namespace DigitalAgency.Bll.Services.Bot
 
             if (type.Contains("ordercallback"))
             {
-                var serviceOrder = await _orderService.GetOrderByIdAsync(id);
+                var serviceOrder = await _orderStorage.GetOrderAsync(id);
                 var mapped = mapper.Map<ServiceOrderModel>(serviceOrder);
                 mapped.Mechanic = new Client();
-                mapped.Mechanic = await _clientService.GetClientByIdAsync(serviceOrder.ExecutorId);
+                mapped.Mechanic = await _clientStorage.GetClientByIdAsync(serviceOrder.ExecutorId);
                 
                 var dict = new ConcurrentDictionary<string, string>();
                 dict.TryAdd("Edit", $"edit order;{serviceOrder.Id}");
@@ -140,16 +141,16 @@ namespace DigitalAgency.Bll.Services.Bot
             }
             else if (type.Contains("clientcallback"))
             {
-                var client = await _clientService.GetClientByIdAsync(id);
+                var client = await _clientStorage.GetClientByIdAsync(id);
                 var mapped = mapper.Map<ClientModel>(client);
                 await _telegram.SendTextMessageAsync(chatId,mapped.ToString(),replyMarkup:backKeyboard);
             } 
             else if (type.Contains("projectcallback"))
             {
-               var car = await _projectService.GetProjectByIdAsync(id);
+               var car = await _projectStorage.GetProjectByIdAsync(id);
                var mapped = mapper.Map<CarModel>(car);
                await _telegram.SendTextMessageAsync(chatId,mapped.ToString(),replyMarkup:backKeyboard);
             }
         }
     }
-}
+}*/

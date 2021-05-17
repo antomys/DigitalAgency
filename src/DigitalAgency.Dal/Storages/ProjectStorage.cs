@@ -1,18 +1,18 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using DigitalAgency.Bll.Services.Interfaces;
 using DigitalAgency.Dal.Context;
 using DigitalAgency.Dal.Entities;
+using DigitalAgency.Dal.Storages.Interfaces;
 using Microsoft.EntityFrameworkCore;
 using Task = System.Threading.Tasks.Task;
 
-namespace DigitalAgency.Bll.Services
+namespace DigitalAgency.Dal.Storages
 {
-    public class ProjectService : IProjectService
+    public class ProjectStorage : IProjectStorage
     {
         private readonly ServicingContext _context;
-        public ProjectService(ServicingContext context)
+        public ProjectStorage(ServicingContext context)
         {
             _context = context;
 

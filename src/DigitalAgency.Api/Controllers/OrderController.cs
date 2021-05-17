@@ -6,6 +6,7 @@ using DigitalAgency.Api.Models;
 using DigitalAgency.Bll.DTOs;
 using DigitalAgency.Bll.Services.Interfaces;
 using DigitalAgency.Dal.Entities;
+using DigitalAgency.Dal.Storages.Interfaces;
 using FluentValidation;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
@@ -17,13 +18,13 @@ namespace DigitalAgency.Api.Controllers
 
     public class OrderController : ControllerBase
     {
-        private readonly IOrderService _orderServiceOrder;
+        private readonly IOrderStorage _orderStorageOrder;
         private readonly IMapper _mapper;
         private readonly ILogger<OrderController> _logger;
         private readonly IValidator<OrderDTO> _serviceOrderValidator;
-        public OrderController(IOrderService orderServiceOrder, IMapper mapper, IValidator<OrderDTO> serviceOrderValidator, ILogger<OrderController> logger)
+        public OrderController(IOrderStorage orderStorageOrder, IMapper mapper, IValidator<OrderDTO> serviceOrderValidator, ILogger<OrderController> logger)
         {
-            _orderServiceOrder = orderServiceOrder;
+            _orderStorageOrder = orderStorageOrder;
             _mapper = mapper;
             _serviceOrderValidator = serviceOrderValidator;
             _logger = logger;
@@ -34,7 +35,7 @@ namespace DigitalAgency.Api.Controllers
         public async Task<IActionResult> GetOrder()
         {
             _logger.LogInformation("Star logging - method GetService controller ServiceOrderContoller");
-            var result = await _orderServiceOrder.GetOrdersAsync();
+            var result = await _orderStorageOrder.GetOrdersAsync();
             _logger.LogDebug("Time request {Time}", DateTime.UtcNow);
             return Ok(result);
         }
@@ -42,7 +43,7 @@ namespace DigitalAgency.Api.Controllers
         public async Task<IActionResult> GetFullOrder()
         {
             _logger.LogInformation("Star logging - method GetService controller ServiceOrderContoller");
-            var result = await _orderServiceOrder.GetFullOrdersAsync();
+            var result = await _orderStorageOrder.GetFullOrdersAsync();
             _logger.LogDebug("Time request {Time}", DateTime.UtcNow);
             return Ok(result);
         }
@@ -50,7 +51,7 @@ namespace DigitalAgency.Api.Controllers
         [HttpGet("/BusyTime/{date}")]
         public async Task<IActionResult> GetBusyTimeByDay(DateTime date)
         {
-            var result = await _orderServiceOrder.GetBusyTimeByDay(date);
+            var result = await _orderStorageOrder.GetBusyTimeByDay(date);
             return Ok(result);
         }
 
@@ -58,14 +59,14 @@ namespace DigitalAgency.Api.Controllers
         public async Task<IActionResult> CreateOrder(Order order)
         {
             _logger.LogInformation("Star logging - method ScheduleService controller ServiceOrderContoller");
-            await _orderServiceOrder.CreateOrderAsync(order);
+            await _orderStorageOrder.CreateOrderAsync(order);
             return Ok();
         }
         [HttpPut]
         public async Task<IActionResult> UpdateOrder(Order order)
         {
             _logger.LogInformation("Star logging - method ScheduleService controller ServiceOrderContoller");
-            await _orderServiceOrder.UpdateAsync(order);
+            await _orderStorageOrder.UpdateAsync(order);
             return Ok();
         }
 
@@ -79,7 +80,7 @@ namespace DigitalAgency.Api.Controllers
             {
                 return BadRequest(validate.Errors.Select(x => new { Error = x.ErrorMessage, Code = x.ErrorCode }).ToList());
             }
-            var result = _orderServiceOrder.ScheduleOrder(order);
+            var result = _orderStorageOrder.ScheduleOrder(order);
             _logger.LogDebug("Time request {Time}", DateTime.UtcNow);
             return Ok(result);
         }
@@ -87,7 +88,7 @@ namespace DigitalAgency.Api.Controllers
         [HttpPatch("/ChangeServiceState/{id},{state}")]
         public IActionResult ChangeOrderState(int id, string state)
         {
-            if (_orderServiceOrder.ChangeOrderState(id, state))
+            if (_orderStorageOrder.ChangeOrderState(id, state))
                 return Ok();
             return BadRequest();
         }
@@ -95,7 +96,7 @@ namespace DigitalAgency.Api.Controllers
         [HttpDelete("/DeleteService/{id}")]
         public IActionResult DeleteOrder(int id)
         {
-            if (_orderServiceOrder.DeleteOrder(id))
+            if (_orderStorageOrder.DeleteOrder(id))
                 return Ok();
             return BadRequest();
         }

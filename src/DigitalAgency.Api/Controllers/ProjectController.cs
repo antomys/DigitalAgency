@@ -3,6 +3,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using DigitalAgency.Bll.Services.Interfaces;
 using DigitalAgency.Dal.Entities;
+using DigitalAgency.Dal.Storages.Interfaces;
 using FluentValidation;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
@@ -13,12 +14,12 @@ namespace DigitalAgency.Api.Controllers
     [ApiController]
     public class ProjectController : ControllerBase
     {
-        private readonly IProjectService _projectService;
+        private readonly IProjectStorage _projectStorage;
         private readonly IValidator<Project> _projectValidator;
         private readonly ILogger<ProjectController> _logger;
-        public ProjectController(IProjectService projectService, IValidator<Project> carValidator, ILogger<ProjectController> logger)
+        public ProjectController(IProjectStorage projectStorage, IValidator<Project> carValidator, ILogger<ProjectController> logger)
         {
-            _projectService = projectService;
+            _projectStorage = projectStorage;
             _projectValidator = carValidator;
             _logger = logger;
         }
@@ -27,7 +28,7 @@ namespace DigitalAgency.Api.Controllers
         public async Task<IActionResult> GetProject()
         {
             _logger.LogInformation("Star logging - method GetCar controller ProjectContoller");
-            var result = await _projectService.GetProjectAsync();
+            var result = await _projectStorage.GetProjectAsync();
             _logger.LogDebug("Time request {Time}",  DateTime.UtcNow);
             return Ok(result);
         }
@@ -41,7 +42,7 @@ namespace DigitalAgency.Api.Controllers
             {
                 return BadRequest(result.Errors.Select(x => new { Error = x.ErrorMessage, Code = x.ErrorCode }).ToList());
             }
-            await _projectService.CreateProjectAsync(project);
+            await _projectStorage.CreateProjectAsync(project);
             _logger.LogDebug("Time request {Time}", DateTime.UtcNow);
             return Ok(project);
         }
@@ -50,7 +51,7 @@ namespace DigitalAgency.Api.Controllers
         public async Task<IActionResult> DeleteProject(int id)
         {
             _logger.LogInformation("Star logging - method DeleteCar controller ProjectContoller");
-            await _projectService.DeleteProjectAsync(id);
+            await _projectStorage.DeleteProjectAsync(id);
             _logger.LogDebug("Time request {Time}", DateTime.UtcNow);
             return Ok(id);
         }
@@ -64,7 +65,7 @@ namespace DigitalAgency.Api.Controllers
             {
                 return BadRequest(result.Errors.Select(x => new { Error = x.ErrorMessage, Code = x.ErrorCode }).ToList());
             }
-            await _projectService.UpdateProjectAsync(project);
+            await _projectStorage.UpdateProjectAsync(project);
             _logger.LogDebug("Time request {Time}", DateTime.UtcNow);
             return Ok(project);
         }

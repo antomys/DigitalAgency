@@ -1,8 +1,8 @@
 ﻿using System.Threading.Tasks;
 
-namespace DigitalAgency.Bll.Services.Interfaces
+namespace DigitalAgency.Dal.Storages.Interfaces
 {
-    public interface IUserService
+    public interface IUserStorage
     {
         public Task<bool> IsUserExist(string UserPhoneNumber);
         public Task<bool> RegisterUser(string UserPhoneNumber, string UserPassword);

@@ -2,6 +2,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using DigitalAgency.Bll.Services.Interfaces;
 using DigitalAgency.Dal.Entities;
+using DigitalAgency.Dal.Storages.Interfaces;
 using Telegram.Bot;
 using Task = System.Threading.Tasks.Task;
 
@@ -9,12 +10,12 @@ namespace DigitalAgency.Bll.Services.Bot
 {
     public class Buttons
     {
-        private readonly IExecutorService _executorService;
+        private readonly IExecutorStorage _executorStorage;
         private readonly ITelegramBotClient _telegram;
 
-        public Buttons(IExecutorService executorService, ITelegramBotClient telegram)
+        public Buttons(IExecutorStorage executorStorage, ITelegramBotClient telegram)
         {
-            _executorService = executorService;
+            _executorStorage = executorStorage;
             _telegram = telegram;
         }
 
@@ -23,10 +24,10 @@ namespace DigitalAgency.Bll.Services.Bot
             var keyOrders = new ConcurrentDictionary<string,string>();
             foreach (var order in orders)
             {
-                var executor = await _executorService.GetExecutorByIdAsync(order.ExecutorId);
+                var executor = await _executorStorage.GetExecutorByIdAsync(order.ExecutorId);
                 keyOrders.TryAdd(order.Project.ProjectName 
                                  + " " + order.Project.ProjectDescription 
-                                 + " ; state: " + order.State + " ; executor: " 
+                                 + " ; state: " + order.StateEnum + " ; executor: " 
                                  + executor.FirstName, 
                     string.Concat(order.GetType().ToString(),";",order.Id));
             }

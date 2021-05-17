@@ -1,15 +1,10 @@
 using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
 using DigitalAgency.Dal.Entities.Enums;
 
-namespace DigitalAgency.Dal.Entities
+namespace DigitalAgency.Bll.Models
 {
-    [Table("Executors")]
-    public class Executor
+    public class ExecutorModel
     {
-        [Key]
-        [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public int Id { get; set; }
         public string FirstName { get; set; }
         public string MiddleName { get; set; }
@@ -18,8 +13,6 @@ namespace DigitalAgency.Dal.Entities
         public PositionsEnum Position { get; set; }
         public long TelegramId { get; set; }
         public long ChatId { get; set; }
-        
-        public virtual ICollection<Order> ServiceOrders { get; set; }
-
+        public List<OrderModel> ServiceOrders { get; set; }
     }
 }

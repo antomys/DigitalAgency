@@ -3,9 +3,9 @@ using System.Threading.Tasks;
 using DigitalAgency.Dal.Entities;
 using Task = System.Threading.Tasks.Task;
 
-namespace DigitalAgency.Bll.Services.Interfaces
+namespace DigitalAgency.Dal.Storages.Interfaces
 {
-    public interface IProjectService
+    public interface IProjectStorage
     {
         Task<Project> CreateProjectAsync(Project newProject);
         Task<List<Project>> GetProjectAsync();

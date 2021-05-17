@@ -4,7 +4,7 @@ namespace DigitalAgency.Api.Controllers
 {
     [Route("[controller]")]
     [ApiController]
-    public class AutoPartController : ControllerBase
+    public class TaskController : ControllerBase
     {
 
     }

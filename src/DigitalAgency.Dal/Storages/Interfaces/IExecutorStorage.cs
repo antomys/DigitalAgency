@@ -5,9 +5,9 @@ using System.Threading.Tasks;
 using DigitalAgency.Dal.Entities;
 using Task = System.Threading.Tasks.Task;
 
-namespace DigitalAgency.Bll.Services.Interfaces
+namespace DigitalAgency.Dal.Storages.Interfaces
 {
-    public interface IExecutorService
+    public interface IExecutorStorage
     {
         Task CreateExecutorAsync(Executor newClient);
         Task<List<Executor>> GetExecutorsAsync();

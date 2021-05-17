@@ -1,8 +1,9 @@
-using System.Collections.Generic;
+/*using System.Collections.Generic;
 using System.Linq;
 using DigitalAgency.Bll.Services.Bot.Interfaces;
 using DigitalAgency.Bll.Services.Interfaces;
 using DigitalAgency.Dal.Entities;
+using DigitalAgency.Dal.Storages.Interfaces;
 using Microsoft.Extensions.Options;
 using Telegram.Bot;
 using Telegram.Bot.Types;
@@ -15,20 +16,20 @@ namespace DigitalAgency.Bll.Services.Bot
     {
         private readonly ITelegramBotClient _telegram;
         private readonly BotConfiguration _botConfiguration;
-        private readonly IProjectService _projectService;
+        private readonly IProjectStorage _projectStorage;
         private readonly IButtons _buttons;
-        private readonly IOrderService _orderService;
+        private readonly IOrderStorage _orderStorage;
 
         public ClientMenu(
             ITelegramBotClient telegram, 
             IOptions<BotConfiguration> botConfiguration, 
-            IProjectService projectService, 
-            IOrderService orderService, 
+            IProjectStorage projectStorage, 
+            IOrderStorage orderStorage, 
             IButtons buttons)
         {
             _telegram = telegram;
-            _projectService = projectService;
-            _orderService = orderService;
+            _projectStorage = projectStorage;
+            _orderStorage = orderStorage;
             _buttons = buttons;
             _botConfiguration = botConfiguration.Value;
         }
@@ -63,7 +64,7 @@ namespace DigitalAgency.Bll.Services.Bot
                     }
                     case "create order":
                     {
-                        var cars = await _projectService.GetClientProjectsAsync(thisClient);
+                        var cars = await _projectStorage.GetClientProjectsAsync(thisClient);
                         if (!cars.Any())
                         {
                             await _telegram.SendTextMessageAsync(receivedMessage.Chat.Id,
@@ -78,7 +79,7 @@ namespace DigitalAgency.Bll.Services.Bot
                     }
                     case "view my orders":
                     {
-                        var orders = await _orderService.GetClientOrdersAsync(thisClient);
+                        var orders = await _orderStorage.GetClientOrdersAsync(thisClient);
                         await ViewOrders(orders, receivedMessage);
                         return;
                     }
@@ -101,7 +102,7 @@ namespace DigitalAgency.Bll.Services.Bot
         }
         private async Task ViewProjects(Client thisClient, Message receivedMessage)
         {
-            var projects = await _projectService.GetClientProjectsAsync(thisClient);
+            var projects = await _projectStorage.GetClientProjectsAsync(thisClient);
             if (!projects.Any())
             {
                 await _telegram.SendTextMessageAsync(receivedMessage.Chat.Id,
@@ -112,4 +113,4 @@ namespace DigitalAgency.Bll.Services.Bot
             await _buttons.ViewProjectButtons(projects,receivedMessage.Chat.Id);
         }
     }
-}
+}*/

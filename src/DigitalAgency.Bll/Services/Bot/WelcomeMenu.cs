@@ -1,6 +1,7 @@
 using DigitalAgency.Bll.Services.Bot.Interfaces;
 using DigitalAgency.Bll.Services.Interfaces;
 using DigitalAgency.Dal.Entities;
+using DigitalAgency.Dal.Storages.Interfaces;
 using Microsoft.Extensions.Options;
 using Telegram.Bot;
 using Telegram.Bot.Types;
@@ -12,20 +13,20 @@ namespace DigitalAgency.Bll.Services.Bot
     public class WelcomeMenu : IWelcomeMenu
     {
         private readonly ITelegramBotClient _telegram;
-        private readonly IClientService _clientService;
-        private readonly IExecutorService _executorService;
+        private readonly IClientStorage _clientStorage;
+        private readonly IExecutorStorage _executorStorage;
         private readonly BotConfiguration _botConfiguration;
         private readonly IClientMenu _clientMenu;
 
         public WelcomeMenu(
-            ITelegramBotClient telegram, IClientService clientService, 
-            IExecutorService executorService, 
+            ITelegramBotClient telegram, IClientStorage clientStorage, 
+            IExecutorStorage executorStorage, 
             IOptions<BotConfiguration> botConfiguration, 
             IClientMenu clientMenu)
         {
             _telegram = telegram;
-            _clientService = clientService;
-            _executorService = executorService;
+            _clientStorage = clientStorage;
+            _executorStorage = executorStorage;
             _clientMenu = clientMenu;
             _botConfiguration = botConfiguration.Value;
         }
@@ -40,8 +41,8 @@ namespace DigitalAgency.Bll.Services.Bot
                 }
                 case "yes":
                 {
-                    await _clientService.DeleteClientAsync(thisClient.Id);
-                    await _executorService.CreateExecutorAsync(new Executor
+                    await _clientStorage.DeleteClientAsync(thisClient.Id);
+                    await _executorStorage.CreateExecutorAsync(new Executor
                     {
                         FirstName = thisClient.FirstName,
                         MiddleName = thisClient.MiddleName,

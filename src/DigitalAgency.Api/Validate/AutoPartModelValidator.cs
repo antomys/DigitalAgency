@@ -11,7 +11,7 @@ namespace DigitalAgency.Api.Validate
             .NotEmpty();
             RuleFor(x => x.Name)
             .NotEmpty();
-            RuleFor(x => x.State)
+            RuleFor(x => x.StateEnum)
             .NotEmpty();
 
         }

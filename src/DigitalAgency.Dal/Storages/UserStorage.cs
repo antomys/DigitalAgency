@@ -4,44 +4,44 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
 using System.Threading.Tasks;
-using DigitalAgency.Bll.Services.Interfaces;
+using DigitalAgency.Dal.Storages.Interfaces;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 
-namespace DigitalAgency.Bll.Services
+namespace DigitalAgency.Dal.Storages
 {
-    public class UserService : IUserService
+    public class UserStorage : IUserStorage
     {
-        protected readonly UserManager<IdentityUser> _userManager;
+        protected readonly UserManager<IdentityUser> UserManager;
 
-        public UserService (UserManager<IdentityUser> userManager)
+        public UserStorage (UserManager<IdentityUser> userManager)
         {
-            _userManager = userManager;
+            UserManager = userManager;
         }
 
-        public async Task<bool> IsUserExist(string UserPhoneNumber)
+        public async Task<bool> IsUserExist(string userPhoneNumber)
         {
-            return await _userManager.Users.AnyAsync(u => u.PhoneNumber == UserPhoneNumber);
+            return await UserManager.Users.AnyAsync(u => u.PhoneNumber == userPhoneNumber);
         }
 
-        public async Task<bool> RegisterUser(string UserPhoneNumber, string UserPassword)
+        public async Task<bool> RegisterUser(string userPhoneNumber, string userPassword)
         {
-            if (string.IsNullOrEmpty(UserPhoneNumber) || string.IsNullOrEmpty(UserPassword) || await IsUserExist(UserPhoneNumber))
+            if (string.IsNullOrEmpty(userPhoneNumber) || string.IsNullOrEmpty(userPassword) || await IsUserExist(userPhoneNumber))
                 return false;
             IdentityUser user = new IdentityUser();
-            user.UserName = user.PhoneNumber = UserPhoneNumber;
-            user.PasswordHash = UserPassword;
-            await _userManager.CreateAsync(user);
+            user.UserName = user.PhoneNumber = userPhoneNumber;
+            user.PasswordHash = userPassword;
+            await UserManager.CreateAsync(user);
             return true;
         }
 
-        public async Task<string> GetToken(string UserPhoneNumber, string UserPassword)
+        public async Task<string> GetToken(string userPhoneNumber, string userPassword)
         {
-            if (string.IsNullOrEmpty(UserPhoneNumber) || string.IsNullOrEmpty(UserPassword))
+            if (string.IsNullOrEmpty(userPhoneNumber) || string.IsNullOrEmpty(userPassword))
                 return null;
-            var user = await _userManager.FindByNameAsync(UserPhoneNumber);
-            if (user == null || user.PasswordHash != UserPassword)
+            var user = await UserManager.FindByNameAsync(userPhoneNumber);
+            if (user == null || user.PasswordHash != userPassword)
                 return null;
             var claims = new List<Claim>
             {
