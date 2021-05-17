@@ -9,7 +9,7 @@ namespace DigitalAgency.Dal.Context
     {
         public DbSet<Client> Clients { get; set; }
         public DbSet<Project> Projects { get; set; }
-        public DbSet<Task> Tasks { get; set; }
+        public DbSet<Card> Tasks { get; set; }
         public DbSet<Order> Orders { get; set; }
         public DbSet<Executor> Executors { get; set; }
 

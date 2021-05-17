@@ -1,11 +1,11 @@
-﻿using DigitalAgency.Dal.Entities;
+﻿using DigitalAgency.Bll.Models;
 using FluentValidation;
 
 namespace DigitalAgency.Api.Validate
 {
-    public class CarModelValidator : AbstractValidator<Project>
+    public class ProjectModelValidator : AbstractValidator<ProjectModel>
     {
-        public CarModelValidator()
+        public ProjectModelValidator()
         {
             RuleFor(x => x.ProjectDescription)
             .NotEmpty()

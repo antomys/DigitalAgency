@@ -1,12 +1,11 @@
-﻿using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using DigitalAgency.Dal.Entities.Enums;
 
 namespace DigitalAgency.Dal.Entities
 {
-    [Table("Tasks")]
-    public class Task
+    [Table("Cards")]
+    public class Card
     {
         [Key]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]

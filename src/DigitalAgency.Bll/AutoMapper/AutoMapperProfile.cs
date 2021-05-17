@@ -12,7 +12,7 @@ namespace DigitalAgency.Bll.AutoMapper
             CreateMap<Executor,ExecutorModel>().ReverseMap();
             CreateMap<Order,OrderModel>().ReverseMap();
             CreateMap<Project,ProjectModel>().ReverseMap();
-            CreateMap<Task,TaskModel>().ReverseMap();
+            CreateMap<Card,TaskModel>().ReverseMap();
         }
     }
 }

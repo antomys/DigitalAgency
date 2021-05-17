@@ -5,11 +5,8 @@ using DigitalAgency.Api.Common;
 using DigitalAgency.Api.Validate;
 using DigitalAgency.Bll;
 using DigitalAgency.Bll.AutoMapper;
-using DigitalAgency.Bll.DTOs;
-using DigitalAgency.Bll.Services;
-using DigitalAgency.Bll.Services.Interfaces;
+using DigitalAgency.Bll.Models;
 using DigitalAgency.Dal.Context;
-using DigitalAgency.Dal.Entities;
 using DigitalAgency.Dal.Storages;
 using DigitalAgency.Dal.Storages.Interfaces;
 using FluentValidation;
@@ -31,10 +28,8 @@ namespace DigitalAgency.Api
         {
             Configuration = configuration;
         }
-
         public IConfiguration Configuration { get; }
-
-        // This method gets called by the runtime. Use this method to add services to the container.
+        
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddDbContext<ServicingContext>(options => 
@@ -48,7 +43,6 @@ namespace DigitalAgency.Api
             services.AddTransient<IExecutorStorage, ExecutorStorage>();
             services.AddTransient<IProjectStorage, ProjectStorage>();
             services.AddTransient<IOrderStorage, OrderStorage>();
-            //services.AddTransient<IBotService, BotService>();
             services.Configure<BotConfiguration>(Configuration.GetSection("BotConfiguration"))
                 .AddSingleton<ITelegramBotClient,TelegramBotClient>(provider => { 
                     var options = provider.GetRequiredService<IOptions<BotConfiguration>>();
@@ -62,8 +56,7 @@ namespace DigitalAgency.Api
                     
                     return null!; 
                 });
-
-            //services.AddTransient<IAddFunction,AddFunction>();
+            
             services.AddHostedService<MigrationsService>();
             services.AddSwaggerGen(c =>
             {
@@ -90,14 +83,12 @@ namespace DigitalAgency.Api
                 });
             });
 
-            services.AddTransient<IValidator<DigitalAgency.Dal.Entities.Client>, ClientModelValidator>();
-            services.AddTransient<IValidator<Project>, CarModelValidator>();
-            services.AddTransient<IValidator<OrderDTO>, ServiceOrderValidator>();
-            services.AddTransient<IValidator<Task>, AutoPartModelValidator>();
-            
+            services.AddTransient<IValidator<ClientModel>, ClientModelValidator>();
+            services.AddTransient<IValidator<ProjectModel>, ProjectModelValidator>();
+            services.AddTransient<IValidator<ExecutorModel>, ExecutorModelValidator>();
+            services.AddTransient<IValidator<TaskModel>, TaskModelValidator>();
         }
-
-        // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
+        
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
             if (env.IsDevelopment())
@@ -120,7 +111,7 @@ namespace DigitalAgency.Api
 
             app.UseSwaggerUI(c =>
             {
-                c.SwaggerEndpoint("/swagger/v1/swagger.json", "My API V1");
+                c.SwaggerEndpoint("/swagger/v1/swagger.json", "Digital Agency API V1");
                 c.RoutePrefix = string.Empty;
             });
 

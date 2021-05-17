@@ -15,7 +15,7 @@
         "ASPNETCORE_ENVIRONMENT": "Development"
       }
     },
-    "AutoService.Client": {
+    "DigitalAgency.Blazor.Front": {
       "commandName": "Project",
       "launchBrowser": true,
       "launchUrl": "/",

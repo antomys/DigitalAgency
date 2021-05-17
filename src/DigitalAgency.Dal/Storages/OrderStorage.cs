@@ -32,6 +32,16 @@ namespace DigitalAgency.Dal.Storages
                 .ToListAsync();
             return result;
         }
+
+        public async Task<Order> GetOrder(Expression<Func<Order, bool>> expression)
+        {
+            return await _context.Orders.Where(expression)
+                .Include(x => x.Executor)
+                .Include(x => x.Tasks)
+                .Include(x => x.Client)
+                .ThenInclude(x => x.Projects).FirstOrDefaultAsync();
+        }
+
         public async Task<Order> GetLastAdded(int clientId)
         {
             return await _context.Orders.OrderBy(x=> x.Id).Where(x => x.ClientId == clientId).LastOrDefaultAsync();

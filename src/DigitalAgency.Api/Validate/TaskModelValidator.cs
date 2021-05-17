@@ -1,11 +1,11 @@
-﻿using DigitalAgency.Dal.Entities;
+﻿using DigitalAgency.Bll.Models;
 using FluentValidation;
 
 namespace DigitalAgency.Api.Validate
 {
-    public class AutoPartModelValidator : AbstractValidator<Task>
+    public class TaskModelValidator : AbstractValidator<TaskModel>
     {
-        public AutoPartModelValidator()
+        public TaskModelValidator()
         {
             RuleFor(x => x.DaysDeadline)
             .NotEmpty();

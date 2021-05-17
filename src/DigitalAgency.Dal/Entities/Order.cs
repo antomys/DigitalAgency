@@ -25,7 +25,7 @@ namespace DigitalAgency.Dal.Entities
         public DateTime ScheduledTime { get; set; }
         public OrderStateEnum StateEnum { get; set; }
         
-        public virtual ICollection<Task> Tasks { get; set; }
+        public virtual ICollection<Card> Tasks { get; set; }
         
     }
 }

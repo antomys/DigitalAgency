@@ -1,9 +1,8 @@
 ﻿using System;
 using System.Linq;
 using System.Threading.Tasks;
+using DigitalAgency.Bll.Models;
 using DigitalAgency.Bll.Services.Interfaces;
-using DigitalAgency.Dal.Entities;
-using DigitalAgency.Dal.Storages.Interfaces;
 using FluentValidation;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
@@ -14,13 +13,16 @@ namespace DigitalAgency.Api.Controllers
     [ApiController]
     public class ProjectController : ControllerBase
     {
-        private readonly IProjectStorage _projectStorage;
-        private readonly IValidator<Project> _projectValidator;
+        private readonly IProjectService _projectService;
+        private readonly IValidator<ProjectModel> _projectValidator;
         private readonly ILogger<ProjectController> _logger;
-        public ProjectController(IProjectStorage projectStorage, IValidator<Project> carValidator, ILogger<ProjectController> logger)
+        public ProjectController(
+            IProjectService projectService, 
+            IValidator<ProjectModel> projectValidator, 
+            ILogger<ProjectController> logger)
         {
-            _projectStorage = projectStorage;
-            _projectValidator = carValidator;
+            _projectService = projectService;
+            _projectValidator = projectValidator;
             _logger = logger;
         }
 
@@ -28,44 +30,44 @@ namespace DigitalAgency.Api.Controllers
         public async Task<IActionResult> GetProject()
         {
             _logger.LogInformation("Star logging - method GetCar controller ProjectContoller");
-            var result = await _projectStorage.GetProjectAsync();
+            var result = await _projectService.GetProjectAsync();
             _logger.LogDebug("Time request {Time}",  DateTime.UtcNow);
             return Ok(result);
         }
 
         [HttpPost]
-        public async Task<ActionResult<Project>> PostProject(Project project)
+        public async Task<ActionResult<ProjectModel>> PostProject(ProjectModel project)
         {
             _logger.LogInformation("Star logging - method PostCar controller ProjectContoller");
-            var result = _projectValidator.Validate(project);
+            var result = await _projectValidator.ValidateAsync(project);
             if (!result.IsValid)
             {
                 return BadRequest(result.Errors.Select(x => new { Error = x.ErrorMessage, Code = x.ErrorCode }).ToList());
             }
-            await _projectStorage.CreateProjectAsync(project);
+            await _projectService.CreateProjectAsync(project);
             _logger.LogDebug("Time request {Time}", DateTime.UtcNow);
             return Ok(project);
         }
 
-        [HttpDelete("{id}")]
+        [HttpDelete("{id:int}")]
         public async Task<IActionResult> DeleteProject(int id)
         {
             _logger.LogInformation("Star logging - method DeleteCar controller ProjectContoller");
-            await _projectStorage.DeleteProjectAsync(id);
+            await _projectService.DeleteProjectAsync(id);
             _logger.LogDebug("Time request {Time}", DateTime.UtcNow);
             return Ok(id);
         }
 
         [HttpPut]
-        public async Task<IActionResult> PutProject(Project project)
+        public async Task<IActionResult> PutProject(ProjectModel project)
         {
             _logger.LogInformation("Star logging - method PutCar controller ProjectContoller");
-            var result = _projectValidator.Validate(project);
+            var result = await _projectValidator.ValidateAsync(project);
             if (!result.IsValid)
             {
                 return BadRequest(result.Errors.Select(x => new { Error = x.ErrorMessage, Code = x.ErrorCode }).ToList());
             }
-            await _projectStorage.UpdateProjectAsync(project);
+            await _projectService.UpdateProjectAsync(project);
             _logger.LogDebug("Time request {Time}", DateTime.UtcNow);
             return Ok(project);
         }
