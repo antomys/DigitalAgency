@@ -1,59 +1,72 @@
 @page "/addexecutor"
 @using Newtonsoft.Json
 @using System.Text
-@using DigitalAgency.Dal.Entities
-@using DigitalAgency.Dal.Entities.Enums
+@using DigitalAgency.Bll.Models
+@using DigitalAgency.Bll.Models.Enums
 @using Task = System.Threading.Tasks.Task
 @inject IHttpClientFactory _executorFactory;
 
 
 <link rel="stylesheet" href="css/bootstrap/bootstrap.min.css" />
-<link href="css/site.css" rel="stylesheet" />
-
+<link href="css/site.css" rel="stylesheet" />\
 <h1>Add new executor</h1>
 <p />
 <table>
     <tr>
         <td>First name:</td>
-        <td><input @bind="FirstName" /></td>
+        <td><input @bind="FirstName"/></td>
     </tr>
     <tr>
         <td>Middle name:</td>
-        <td><input @bind="MiddleName" /></td>
+        <td><input @bind="MiddleName"/></td>
     </tr>
     <tr>
         <td>Last name:</td>
-        <td><input @bind="LastName" /></td>
+        <td><input @bind="LastName"/></td>
     </tr>
     <tr>
         <td>Phone number:</td>
-        <td><input @bind="PhoneNumber" /></td>
+        <td><input @bind="PhoneNumber"/></td>
     </tr>
     <tr>
         <td>Position:</td>
         <select class="custom-select" @onchange="OnPositionValueChanged" title="Region is required ">
             <option value="Select" selected disabled="disabled">Choose Car</option>
-            @foreach (var car in Projects)
+            @foreach (var car in Enum.GetNames(typeof(PositionsEnum)))
             {
-                <option value="@car.Id">@car.ProjectName @car.ProjectDescription</option>
+                <option value="@car">@car</option>
             }
-        </select> 
+        </select>
     </tr>
 </table>
 <p />
-<a class="btn btn-secondary" href="executors">Back</a>
-<button class="btn btn-primary" @onclick="AddNewMechanic">&#10004;Add</button> @Alert
+<div class="col-sm-3">
+        <a class="btn btn-secondary" href="executors">Back</a>
+        <button class="btn btn-primary" @onclick="AddNewMechanic">&#10004;Add</button> 
+        </div>
+<div class="col-sm-9">
+    <span>@Alert</span>
+</div>
 <p />
+
 
 @code 
 {
     private string FirstName { get; set; }
     private string MiddleName { get; set; }
     private string LastName { get; set; }
-    private PositionsEnum Position { get; set; }
     private string PhoneNumber { get; set; }
     private string Alert { get; set; }
-
+    
+    [Parameter]  
+    private PositionsEnum ValuePosition { get; set; }
+    [Parameter]  
+    public EventCallback < PositionsEnum > ValuePositionChanged { get; set; }  
+    
+    private Task OnPositionValueChanged(ChangeEventArgs e) {  
+        ValuePosition = (PositionsEnum) e.Value;
+        return ValuePositionChanged.InvokeAsync(ValuePosition); 
+    }  
     
     protected async Task AddNewMechanic()
     {
@@ -66,16 +79,24 @@
             Alert = "Fill all fields!";
         }
         var executorFactory = _executorFactory.CreateClient();
-        var executor = new Executor
+        var executor = new ExecutorModel
         {
-            FirstName = FirstName, MiddleName = MiddleName, LastName = LastName, PhoneNumber = PhoneNumber, 
-            Position = Position
+            FirstName = FirstName, 
+            MiddleName = MiddleName, 
+            LastName = LastName, 
+            PhoneNumber = PhoneNumber, 
+            Position = ValuePosition
         };
         var content = new StringContent(JsonConvert.SerializeObject(executor), Encoding.UTF8, "application/json");
         var response = await executorFactory.PostAsync("http://localhost:8443/Client/executor", content);
 
-        Alert = !response.IsSuccessStatusCode
-            ? "Fill all fields!"
-            : "Executor successfully added!";
+        if (response.IsSuccessStatusCode)
+        {
+            Alert = "Executor successfully added!";
+        }
+        else
+        {
+            Alert = await response.Content.ReadAsStringAsync();
+        }
     }
 }

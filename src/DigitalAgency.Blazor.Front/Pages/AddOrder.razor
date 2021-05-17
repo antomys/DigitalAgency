@@ -1,6 +1,7 @@
 ﻿@page "/addorder"
 @using System.Text
 @using DigitalAgency.Bll.Models
+@using DigitalAgency.Bll.Models.Enums
 @using Newtonsoft.Json
 @using JsonSerializer = System.Text.Json.JsonSerializer
 @using Task = System.Threading.Tasks.Task
@@ -38,7 +39,7 @@ else
         </tr>
         <tr>
             <td>Project: </td>
-            <select class="custom-select" @onchange="OnCarValueChanged" title="Region is required ">
+            <select class="custom-select" @onchange="OnProjectValueChanged" title="Region is required ">
                 <option value="Select" selected disabled="disabled">Choose Car</option>
                 @foreach (var car in Projects)
                 {
@@ -48,7 +49,7 @@ else
         </tr>
         <tr>
             <td>Executor: </td>
-            <select class="custom-select" @onchange="OnMechanicValueChanged" title="Region is required ">
+            <select class="custom-select" @onchange="OnExecutorValueChanged" title="Region is required ">
                 <option value="Select" selected disabled="disabled">Choose Mechanic</option>
                 @foreach (var client in Executors)
                 {
@@ -79,19 +80,19 @@ else
     public EventCallback < DateTime> DateChanged { get; set; } 
     
     [Parameter]  
-    public string ValueClient { get; set; }  
+    public ClientModel ValueClient { get; set; }  
     [Parameter]  
-    public EventCallback < string > ValueClientChanged { get; set; }  
+    public EventCallback < ClientModel > ValueClientChanged { get; set; }  
     
     [Parameter]  
-    public string ValueMechanic { get; set; }  
+    public ExecutorModel ValueExecutor { get; set; }  
     [Parameter]  
-    public EventCallback < string > ValueMechanicChanged { get; set; }  
+    public EventCallback < ExecutorModel > ValueExecutorChanged { get; set; }  
     
     [Parameter]  
-    public string ValueCar { get; set; }  
+    public ProjectModel ValueProject { get; set; }  
     [Parameter]  
-    public EventCallback < string > ValueCarChanged { get; set; }  
+    public EventCallback < ProjectModel > ValueProjectChanged { get; set; }  
 
     protected override async Task OnInitializedAsync()
     {
@@ -113,22 +114,22 @@ else
     }
     
     private Task OnClientValueChanged(ChangeEventArgs e) {  
-        ValueClient = e.Value.ToString();  
+        ValueClient = e.Value as ClientModel;  
          
         var client = _clientFactory.CreateClient();
         var result = client.GetAsync("http://localhost:8443/Project").Result;
         var info = result.Content.ReadAsStringAsync().Result;
         var newDeserialized = JsonConvert.DeserializeObject<List<ProjectModel>>(info);
-        Projects = newDeserialized.Where(x=> x.OwnerId.ToString() == ValueClient).ToList();
+        Projects = newDeserialized?.Where(x=> x.Client.Id == ValueClient.Id).ToList();
         return ValueClientChanged.InvokeAsync(ValueClient); 
     }  
-    private Task OnMechanicValueChanged(ChangeEventArgs e) {  
-        ValueMechanic = e.Value.ToString();
-        return ValueMechanicChanged.InvokeAsync(ValueMechanic); 
+    private Task OnExecutorValueChanged(ChangeEventArgs e) {  
+        ValueExecutor = e.Value as ExecutorModel;
+        return ValueExecutorChanged.InvokeAsync(ValueExecutor); 
     }  
-    private Task OnCarValueChanged(ChangeEventArgs e) {  
-        ValueCar = e.Value.ToString();
-        return ValueCarChanged.InvokeAsync(ValueMechanic); 
+    private Task OnProjectValueChanged(ChangeEventArgs e) {  
+        ValueProject = e.Value as ProjectModel;
+        return ValueProjectChanged.InvokeAsync(ValueProject); 
     } 
 
     protected async Task AddNewOrder()
@@ -140,15 +141,15 @@ else
         var serviceOrder = new OrderModel
         {
             Client = ValueClient,
-            Executor = ValueMechanic,
-            Project = ValueCar,
+            Executor = ValueExecutor,
+            Project = ValueProject,
             ScheduledTime = ScheduledDate,
             CreationDate = DateTime.Now,
-            StateEnum = State
+            StateEnum = OrderStateEnum.New
         };
         
         var content = new StringContent(JsonSerializer.Serialize(serviceOrder), Encoding.UTF8, "application/json");
-       var response =  await client.PostAsync("http://localhost:8443/Order/createOrder", content);
+        var response =  await client.PostAsync("http://localhost:8443/Order/createOrder", content);
         
         if (response.IsSuccessStatusCode)
         {
@@ -158,7 +159,5 @@ else
         {
             Alert = await response.Content.ReadAsStringAsync();
         }
-
     }
-
 }
