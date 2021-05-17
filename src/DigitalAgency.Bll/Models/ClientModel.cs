@@ -9,7 +9,6 @@ namespace DigitalAgency.Bll.Models
         public string MiddleName { get; set; }
         public string LastName { get; set; }
         public string PhoneNumber { get; set; }
-        public bool IsMechanic { get; set; }
         public long TelegramId { get; set; }
         public long ChatId { get; set; }
         

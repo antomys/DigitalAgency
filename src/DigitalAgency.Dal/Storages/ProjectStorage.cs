@@ -17,8 +17,6 @@ namespace DigitalAgency.Dal.Storages
         public ProjectStorage(ServicingContext context)
         {
             _context = context;
-
-
         }
         public async Task<Project> CreateProjectAsync(Project newProject)
         {
@@ -39,8 +37,8 @@ namespace DigitalAgency.Dal.Storages
         public async Task<Project> GetProjectAsync(Expression<Func<Project, bool>> expression)
         {
             return await _context.Projects.Where(expression)
-                .Include(x => x.Orders)
-                .ThenInclude(x => x.Client).FirstOrDefaultAsync();
+                .Include(x=> x.Client)
+                .ThenInclude(x=> x.Orders).FirstOrDefaultAsync();
         }
         public async Task DeleteProjectAsync(int id)
         {
@@ -51,7 +49,7 @@ namespace DigitalAgency.Dal.Storages
         }
         public async Task<List<Project>> GetProjectsAsync()
         {
-            return await _context.Projects.ToListAsync();
+            return await _context.Projects.Include(x=>x.Client).ToListAsync();
         }
         public async Task<List<Project>> GetClientProjectsAsync(Client thisClient)
         {
@@ -63,14 +61,8 @@ namespace DigitalAgency.Dal.Storages
         }
         public async Task UpdateProjectAsync(Project project)
         {
-            var existingCar = await _context.Projects.FirstOrDefaultAsync(c => c.Id == project.Id);
-            if (existingCar != null)
-            {
-                existingCar.ProjectName = project.ProjectName;
-                existingCar.ProjectDescription = project.ProjectDescription;
-                existingCar.ProjectLink = project.ProjectLink;
-                await _context.SaveChangesAsync();
-            }
+            _context.Update(project); 
+            await _context.SaveChangesAsync();
         }
     }
 }

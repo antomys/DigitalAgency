@@ -20,8 +20,6 @@ namespace DigitalAgency.Api.Validate
                 .NotEmpty()
                 .MinimumLength(2)
                 .MaximumLength(20);
-            RuleFor(x => x.Position)
-                .NotEmpty();
             RuleFor(x => x.PhoneNumber)
                 .NotEmpty()
                 .MinimumLength(11)

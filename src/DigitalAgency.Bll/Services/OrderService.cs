@@ -1,7 +1,9 @@
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using AutoMapper;
 using DigitalAgency.Bll.Models;
+using DigitalAgency.Bll.Models.Enums;
 using DigitalAgency.Bll.Services.Interfaces;
 using DigitalAgency.Dal.Entities;
 using DigitalAgency.Dal.Storages.Interfaces;
@@ -30,18 +32,42 @@ namespace DigitalAgency.Bll.Services
 
         public async Task<List<OrderModel>> GetOrdersAsync()
         {
-            return _mapper.Map<List<OrderModel>>(await _orderStorage.GetOrdersAsync());
+            var thisOrders = await _orderStorage.GetOrdersAsync();
+            return _mapper.Map<List<OrderModel>>(thisOrders);
         }
 
         public async Task CreateOrderAsync(OrderModel order)
         {
-            await _orderStorage.CreateOrderAsync(_mapper.Map<Order>(order));
+            if (order.Client == null || order.Project == null)
+                return;
+            order.StateEnum = OrderStateEnum.New;
+            order.CreationDate = DateTime.UtcNow;
+
+            var mapped = _mapper.Map<Order>(order);
+            if (order.Executor != null)
+            {
+                mapped.ExecutorId = order.Executor.Id;
+            }
+            else
+            {
+                mapped.Executor = null;
+            }
+
+            await _orderStorage.CreateOrderAsync(mapped);
         }
 
-        public async Task UpdateAsync(OrderModel order)
+        public async Task<bool> UpdateAsync(OrderModel order)
         {
-            if (await _orderStorage.GetOrder(x => x.Id == order.Id) != null)
-                await _orderStorage.UpdateAsync(_mapper.Map<Order>(order));
+            var thisOrder = await _orderStorage.GetOrder(x => x.Id == order.Id);
+            if (thisOrder == null)
+                return false;
+            var mappedOrder = _mapper.Map<Order>(order);
+
+            thisOrder.Executor = mappedOrder.Executor ?? thisOrder.Executor;
+            thisOrder.ScheduledTime = mappedOrder.ScheduledTime;
+            
+            await _orderStorage.UpdateAsync(_mapper.Map<Order>(order));
+            return true;
         }
 
         public async Task<bool> DeleteOrder(int id)

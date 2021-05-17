@@ -1,6 +1,6 @@
 @page "/clients"
 @using System.Text.Json
-@using DigitalAgency.Dal.Entities
+@using DigitalAgency.Bll.Models
 @using Task = System.Threading.Tasks.Task
 @inject IHttpClientFactory _clientFactory;
 
@@ -56,21 +56,21 @@ else
 
 @code 
 {
-    protected List<Client> ClientsList { get; set; }
-    protected string info;
+    protected List<ClientModel> ClientsList { get; set; }
+    protected string Info;
 
     protected override async Task OnInitializedAsync()
     {
         var client = _clientFactory.CreateClient();
-        var result = await client.GetAsync("http://localhost:8443/Client");
+        var result = await client.GetAsync("http://localhost:8443/Client/GetClient");
 
-        info = await result.Content.ReadAsStringAsync();
+        Info = await result.Content.ReadAsStringAsync();
         var options = new JsonSerializerOptions
         {
             PropertyNameCaseInsensitive = true,
         };
 
-        var deserialized = JsonSerializer.Deserialize<List<Client>>(info, options);
+        var deserialized = JsonSerializer.Deserialize<List<ClientModel>>(Info, options);
         ClientsList = deserialized?.ToList();
     }
 

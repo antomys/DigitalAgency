@@ -12,8 +12,8 @@ namespace DigitalAgency.Bll.Services.Interfaces
         Task<bool> CreateNewClient(Message receivedMessage);
         Task<List<ClientModel>> GetClientsAsync();
         Task<List<ExecutorModel>> GetExecutorsAsync();
-        Task CreateClientAsync(ClientModel clientModel);
-        Task CreateExecutorAsync(ExecutorModel executor);
+        Task<bool> CreateClientAsync(ClientModel clientModel);
+        Task<bool> CreateExecutorAsync(ExecutorModel executor);
         Task DeleteClientAsync(int id);
         Task DeleteExecutorAsync(int id);
         Task UpdateClientAsync(ClientModel client);

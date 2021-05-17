@@ -1,6 +1,7 @@
 ﻿@page "/editclient/{id}"
 @using System.Text
 @using System.Text.Json
+@using DigitalAgency.Bll.Models
 @using DigitalAgency.Dal.Entities
 @using Task = System.Threading.Tasks.Task
 @inject IHttpClientFactory _clientFactory;
@@ -46,7 +47,7 @@ else
 <p />
 
 @code {
-    protected Client Client { get; set; }
+    protected ClientModel Client { get; set; }
     protected string FirstName { get; set; }
     protected string MiddleName { get; set; }
     protected string LastName { get; set; }
@@ -61,20 +62,19 @@ else
     protected override async Task OnInitializedAsync()
     {
         var mechanic = _clientFactory.CreateClient();
-        var result = await mechanic.GetAsync("http://localhost:8443/Client");
+        var result = await mechanic.GetAsync("http://localhost:8443/Client/GetClient");
 
         Info = await result.Content.ReadAsStringAsync();
         var options = new JsonSerializerOptions
         {
             PropertyNameCaseInsensitive = true,
         };
-        var deserialized = JsonSerializer.Deserialize<List<Client>>(Info, options);
+        var deserialized = JsonSerializer.Deserialize<List<ClientModel>>(Info, options);
         Client = deserialized?.Where(x=>x.Id.ToString() == Id).First();
         FirstName = Client?.FirstName;
         LastName = Client?.LastName;
         MiddleName = Client?.MiddleName;
         PhoneNumber = Client?.PhoneNumber;
-
     }
 
     protected async Task UpdateClientAsync()
@@ -90,7 +90,7 @@ else
         Client.MiddleName = MiddleName;
         Client.PhoneNumber = PhoneNumber;
         var content = new StringContent(JsonSerializer.Serialize(Client), Encoding.UTF8, "application/json");
-        var response = await client.PutAsync("http://localhost:8443/Client", content);
+        var response = await client.PutAsync("http://localhost:8443/Client/PutClient", content);
         
         if (response.IsSuccessStatusCode)
         {

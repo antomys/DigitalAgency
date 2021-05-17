@@ -1,9 +1,11 @@
 ﻿@page "/addproject"
 @using System.Text
+@using DigitalAgency.Bll.Models
 @using DigitalAgency.Dal.Entities
 @using Newtonsoft.Json
 @using JsonSerializer = System.Text.Json.JsonSerializer
 @using Task = System.Threading.Tasks.Task
+@inject NavigationManager _navigationManager
 @inject IHttpClientFactory _clientFactory;
 
 
@@ -66,7 +68,7 @@ else
     protected override async Task OnInitializedAsync()
     {
         var client = _clientFactory.CreateClient();
-        var result = await client.GetAsync("http://localhost:8443/Client");
+        var result = await client.GetAsync("http://localhost:8443/Client/GetClient");
 
         var info = await result.Content.ReadAsStringAsync();
         var deserialized = JsonConvert.DeserializeObject<List<Client>>(info);
@@ -80,7 +82,7 @@ else
     protected async void AddNewProject()
     {
         Alert = " ";
-        if(ProjectName == string.Empty || ProjectDescription == string.Empty || ProjectLink == string.Empty)
+        if(ProjectName == string.Empty || ProjectDescription == string.Empty || ProjectLink == string.Empty || string.IsNullOrEmpty(Value))
         {
             Alert = "Fill all fields!";
             return;
@@ -88,20 +90,20 @@ else
         }
         var client = _clientFactory.CreateClient();
         
-        var project = new Project 
+        var project = new ProjectModel
         { 
             ProjectName = ProjectName, 
             ProjectDescription = ProjectDescription, 
             ProjectLink = ProjectLink,
-            OwnerId = int.Parse(Value)
-        
+            Client = new ClientModel{Id = int.Parse(Value)}
         };
         var content = new StringContent(JsonSerializer.Serialize(project),Encoding.UTF8,"application/json");
-        var response = await client.PostAsync("http://localhost:8443/Project", content);
+        var response = await client.PostAsync("http://localhost:8443/Project/PostProject", content);
 
         if (response.IsSuccessStatusCode)
         {
             Alert = "Project successfully added!";
+            _navigationManager.NavigateTo("projects");
         }
         else
         {

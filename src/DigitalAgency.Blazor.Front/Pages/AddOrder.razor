@@ -6,6 +6,7 @@
 @using JsonSerializer = System.Text.Json.JsonSerializer
 @using Task = System.Threading.Tasks.Task
 @inject IHttpClientFactory _clientFactory;
+@inject NavigationManager _navigationManager
 
 
 
@@ -80,24 +81,24 @@ else
     public EventCallback < DateTime> DateChanged { get; set; } 
     
     [Parameter]  
-    public ClientModel ValueClient { get; set; }  
+    public string ValueClient { get; set; }  
     [Parameter]  
-    public EventCallback < ClientModel > ValueClientChanged { get; set; }  
+    public EventCallback < string > ValueClientChanged { get; set; }  
     
     [Parameter]  
-    public ExecutorModel ValueExecutor { get; set; }  
+    public string ValueExecutor { get; set; }  
     [Parameter]  
-    public EventCallback < ExecutorModel > ValueExecutorChanged { get; set; }  
+    public EventCallback < string > ValueExecutorChanged { get; set; }  
     
     [Parameter]  
-    public ProjectModel ValueProject { get; set; }  
+    public string ValueProject { get; set; }  
     [Parameter]  
-    public EventCallback < ProjectModel > ValueProjectChanged { get; set; }  
+    public EventCallback < string > ValueProjectChanged { get; set; }  
 
     protected override async Task OnInitializedAsync()
     {
         var client = _clientFactory.CreateClient();
-        var result = await client.GetAsync("http://localhost:8443/Client");
+        var result = await client.GetAsync("http://localhost:8443/Client/GetClient");
 
         var info = await result.Content.ReadAsStringAsync();
         ScheduledDate = DateTime.Now;
@@ -105,7 +106,7 @@ else
         Clients = deserialized?.ToList();
         ScheduledDate = DateTime.Now;
 
-        result = await client.GetAsync("http://localhost:8443/Client/executor");
+        result = await client.GetAsync("http://localhost:8443/Client/GetExecutor");
         info = await result.Content.ReadAsStringAsync();
         var newDeserialized = JsonConvert.DeserializeObject<List<ExecutorModel>>(info);
         Executors = newDeserialized?.ToList();
@@ -114,21 +115,21 @@ else
     }
     
     private Task OnClientValueChanged(ChangeEventArgs e) {  
-        ValueClient = e.Value as ClientModel;  
+        ValueClient = e.Value.ToString();  
          
         var client = _clientFactory.CreateClient();
-        var result = client.GetAsync("http://localhost:8443/Project").Result;
+        var result = client.GetAsync("http://localhost:8443/Project/GetProject").Result;
         var info = result.Content.ReadAsStringAsync().Result;
         var newDeserialized = JsonConvert.DeserializeObject<List<ProjectModel>>(info);
-        Projects = newDeserialized?.Where(x=> x.Client.Id == ValueClient.Id).ToList();
+        Projects = newDeserialized?.Where(x=> x.Client.Id.ToString() == ValueClient).ToList();
         return ValueClientChanged.InvokeAsync(ValueClient); 
     }  
     private Task OnExecutorValueChanged(ChangeEventArgs e) {  
-        ValueExecutor = e.Value as ExecutorModel;
+        ValueExecutor = e.Value.ToString();
         return ValueExecutorChanged.InvokeAsync(ValueExecutor); 
     }  
     private Task OnProjectValueChanged(ChangeEventArgs e) {  
-        ValueProject = e.Value as ProjectModel;
+        ValueProject = e.Value.ToString();
         return ValueProjectChanged.InvokeAsync(ValueProject); 
     } 
 
@@ -136,24 +137,29 @@ else
     {
         Alert = " ";
         var client = _clientFactory.CreateClient();
-        //ScheaduleViewModel newOrder = new ScheaduleViewModel { FirstName = FirstName, MiddleName = MiddleName, LastName = LastName, ClientPhone = ClientPhone, CarMake = CarMake, CarModel = CarModel, CarPlate = CarPlate, CarColor = CarColor, ScheduledDate = ScheduledDate, };
+        if (ValueClient == null || ValueProject == null)
+        {
+            Alert = "Fill all fields!";
+            return;
+        }
+    //ScheaduleViewModel newOrder = new ScheaduleViewModel { FirstName = FirstName, MiddleName = MiddleName, LastName = LastName, ClientPhone = ClientPhone, CarMake = CarMake, CarModel = CarModel, CarPlate = CarPlate, CarColor = CarColor, ScheduledDate = ScheduledDate, };
         
         var serviceOrder = new OrderModel
         {
-            Client = ValueClient,
-            Executor = ValueExecutor,
-            Project = ValueProject,
+            Client = new ClientModel{Id = int.Parse(ValueClient)},
+            Executor = int.TryParse(ValueExecutor, out var id)? new ExecutorModel{Id = id} : null,
+            Project = new ProjectModel{Id = int.Parse(ValueProject)},
             ScheduledTime = ScheduledDate,
             CreationDate = DateTime.Now,
             StateEnum = OrderStateEnum.New
         };
-        
         var content = new StringContent(JsonSerializer.Serialize(serviceOrder), Encoding.UTF8, "application/json");
-        var response =  await client.PostAsync("http://localhost:8443/Order/createOrder", content);
+        var response =  await client.PostAsync("http://localhost:8443/Order/CreateOrder", content);
         
         if (response.IsSuccessStatusCode)
         {
             Alert = "Added new order";
+            _navigationManager.NavigateTo("orders");
         }
         else
         {

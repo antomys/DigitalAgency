@@ -1,6 +1,9 @@
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using AutoMapper;
 using DigitalAgency.Bll.Models;
+using DigitalAgency.Bll.Models.Enums;
 using DigitalAgency.Bll.Services.Interfaces;
 using DigitalAgency.Dal.Entities;
 using DigitalAgency.Dal.Storages.Interfaces;
@@ -11,10 +14,17 @@ namespace DigitalAgency.Bll.Services
     public class ClientService: IClientService
     {
         private readonly IClientStorage _clientStorage;
+        private readonly IExecutorStorage _executorStorage;
+        private readonly IMapper _mapper;
 
-        public ClientService(IClientStorage clientStorage)
+        public ClientService(
+            IClientStorage clientStorage, 
+            IMapper mapper, 
+            IExecutorStorage executorStorage)
         {
             _clientStorage = clientStorage;
+            _mapper = mapper;
+            _executorStorage = executorStorage;
         }
         public async Task<bool> CreateNewClient(Telegram.Bot.Types.Message receivedMessage)
         {
@@ -38,37 +48,79 @@ namespace DigitalAgency.Bll.Services
             await _clientStorage.CreateClientAsync(newClient);
             return true;
         }
-        public Task<List<ClientModel>> GetClientsAsync()
+        public async Task<List<ClientModel>> GetClientsAsync()
         {
-            throw new System.NotImplementedException();
+            return _mapper.Map<List<ClientModel>>(await _clientStorage.GetClientsAsync());
         }
-        public Task<List<ExecutorModel>> GetExecutorsAsync()
+        public async Task<List<ExecutorModel>> GetExecutorsAsync()
         {
-            throw new System.NotImplementedException();
+            return _mapper.Map<List<ExecutorModel>>(await _executorStorage.GetExecutorsAsync());
         }
-        public Task CreateClientAsync(ClientModel clientModel)
+        public async Task<bool> CreateClientAsync(ClientModel clientModel)
         {
-            throw new System.NotImplementedException();
+            if (clientModel.FirstName == null || clientModel.PhoneNumber == null)
+                return false;
+            
+            clientModel.Orders = new List<OrderModel>();
+            clientModel.Projects = new List<ProjectModel>();
+
+            await _clientStorage.CreateClientAsync(_mapper.Map<Client>(clientModel));
+            return false;
         }
-        public Task CreateExecutorAsync(ExecutorModel executor)
+        public async Task<bool> CreateExecutorAsync(ExecutorModel executor)
         {
-            throw new System.NotImplementedException();
+            if (executor.FirstName == null || executor.PhoneNumber == null)
+                return false;
+
+            executor.Orders = new List<OrderModel>();
+            
+            await _executorStorage.CreateExecutorAsync(_mapper.Map<Executor>(executor));
+            return false;
         }
-        public Task DeleteClientAsync(int id)
+        public async Task DeleteClientAsync(int id)
         {
-            throw new System.NotImplementedException();
+            if (await _clientStorage.GetClientAsync(x => x.Id == id) != null)
+                await _clientStorage.DeleteClientAsync(id);
         }
-        public Task DeleteExecutorAsync(int id)
+        public async Task DeleteExecutorAsync(int id)
         {
-            throw new System.NotImplementedException();
+            if (await _executorStorage.GetExecutorAsync(x => x.Id == id) != null)
+                await _executorStorage.DeleteExecutorAsync(id);
         }
-        public Task UpdateClientAsync(ClientModel client)
+        public async Task UpdateClientAsync(ClientModel client)
         {
-            throw new System.NotImplementedException();
+            var thisClient = await _clientStorage.GetClientAsync(x => x.TelegramId == client.TelegramId);
+
+            if (client is null || thisClient is null)
+                return;
+            var mappedClient = _mapper.Map<Client>(client);
+            
+            thisClient.Orders = mappedClient.Orders ?? thisClient.Orders;
+            thisClient.Projects = mappedClient.Projects ?? thisClient.Projects;
+            thisClient.FirstName = mappedClient.FirstName ?? thisClient.FirstName;
+            thisClient.LastName = mappedClient.LastName ?? thisClient.LastName;
+
+            await _clientStorage.UpdateClientAsync(thisClient);
+
         }
-        public Task UpdateExecutorAsync(ExecutorModel executor)
+        public async Task UpdateExecutorAsync(ExecutorModel executor)
         {
-            throw new System.NotImplementedException();
+            var thisExecutor = await _executorStorage.GetExecutorAsync(x => x.TelegramId == executor.TelegramId);
+
+            if (executor is null || thisExecutor is null)
+                return;
+            var mappedExecutor = _mapper.Map<Executor>(executor);
+            
+            thisExecutor.Orders = mappedExecutor.Orders ?? thisExecutor.Orders;
+            thisExecutor.Position =
+                Enum.IsDefined(typeof(PositionsEnum), thisExecutor.Position)
+                    ? mappedExecutor.Position
+                    : Dal.Entities.Enums.PositionsEnum.Unknown;
+            thisExecutor.FirstName = mappedExecutor.FirstName ?? thisExecutor.FirstName;
+            thisExecutor.LastName = mappedExecutor.LastName ?? thisExecutor.LastName;
+
+            await _executorStorage.UpdateExecutorAsync(thisExecutor);
+
         }
     }
 }

@@ -54,7 +54,7 @@
         var clientFactory = _clientFactory.CreateClient();
         var client = new Client { FirstName = FirstName, MiddleName = MiddleName, LastName = LastName, PhoneNumber = PhoneNumber};
         var content = new StringContent(JsonConvert.SerializeObject(client), Encoding.UTF8, "application/json");
-        var response = await clientFactory.PostAsync("http://localhost:8443/Client", content);
+        var response = await clientFactory.PostAsync("http://localhost:8443/Client/PostClient", content);
 
         if (response.IsSuccessStatusCode)
         {

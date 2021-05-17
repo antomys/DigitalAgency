@@ -24,12 +24,17 @@ namespace DigitalAgency.Bll.Services
             return _mapper.Map<List<ProjectModel>>(await _projectStorage.GetProjectsAsync());
         }
 
-        public async Task CreateProjectAsync(ProjectModel project)
+        public async Task<bool> CreateProjectAsync(ProjectModel project)
         {
+            var thisProject = await _projectStorage
+                .GetProjectAsync(x => x.ProjectName == project.ProjectName && x.Client.Id == project.Client.Id);
+            if (project.Client == null ||  thisProject != null)
+            {
+                return false;
+            }
             var mappedProject = _mapper.Map<Project>(project);
-            if(await _projectStorage
-                .GetProjectAsync(x=> x.ProjectName == mappedProject.ProjectName && x.Client.Id == mappedProject.Client.Id) != null)
-                await _projectStorage.CreateProjectAsync(_mapper.Map<Project>(project));
+            await _projectStorage.CreateProjectAsync(mappedProject);
+            return true;
         }
 
         public async Task DeleteProjectAsync(int id)
@@ -40,8 +45,16 @@ namespace DigitalAgency.Bll.Services
 
         public async Task UpdateProjectAsync(ProjectModel project)
         {
-            if(await _projectStorage.GetProjectAsync(x=> x.Id == project.Id) != null)
-                await _projectStorage.DeleteProjectAsync(project.Id);
+            var thisProject = await _projectStorage.GetProjectAsync(x => x.Id == project.Id);
+            if (thisProject?.Client == null) return;
+            
+            var mappedProject = _mapper.Map<Project>(project);
+
+            thisProject.ProjectDescription = mappedProject.ProjectDescription ?? thisProject.ProjectDescription;
+            thisProject.ProjectLink = mappedProject.ProjectLink ?? thisProject.ProjectDescription;
+            thisProject.ProjectFilePath = mappedProject.ProjectFilePath ?? thisProject.ProjectFilePath;
+
+            await _projectStorage.UpdateProjectAsync(thisProject);
         }
     }
 }

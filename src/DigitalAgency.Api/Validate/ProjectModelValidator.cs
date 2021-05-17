@@ -8,17 +8,17 @@ namespace DigitalAgency.Api.Validate
         public ProjectModelValidator()
         {
             RuleFor(x => x.ProjectDescription)
-            .NotEmpty()
-            .MinimumLength(2)
-            .MaximumLength(30);
+                .NotEmpty()
+                .MinimumLength(2)
+                .MaximumLength(30);
             RuleFor(x => x.ProjectName)
-            .NotEmpty()
-            .MinimumLength(2)
-            .MaximumLength(30);
+                .NotEmpty()
+                .MinimumLength(2)
+                .MaximumLength(30);
             RuleFor(x => x.ProjectLink)
-            .NotEmpty()
-            .MinimumLength(3)
-            .MaximumLength(15);
+                .NotEmpty()
+                .MinimumLength(3)
+                .MaximumLength(15);
         }
     }
 }

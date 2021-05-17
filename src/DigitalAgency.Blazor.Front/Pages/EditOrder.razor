@@ -101,7 +101,7 @@ else
     protected override async Task OnInitializedAsync()
     {
         var client = _clientFactory.CreateClient();
-        var result = await client.GetAsync("http://localhost:8443/fullOrder");
+        var result = await client.GetAsync("http://localhost:8443/Client/GetOrder");
 
         var info = await result.Content.ReadAsStringAsync();
         
@@ -110,7 +110,7 @@ else
         ScheduledDate = Order.ScheduledTime.Date;
         State = Order.StateEnum;
         
-        result = await client.GetAsync("http://localhost:8443/Client/executor");
+        result = await client.GetAsync("http://localhost:8443/Client/GetExecutor");
         info = await result.Content.ReadAsStringAsync();
         var newDeserialized = JsonConvert.DeserializeObject<List<ExecutorModel>>(info);
         Executors = newDeserialized?.ToList();
@@ -132,7 +132,7 @@ else
         };
         
         var content = new StringContent(JsonSerializer.Serialize(serviceOrder), Encoding.UTF8, "application/json");
-        var response =  await client.PutAsync("http://localhost:8443/Order", content);
+        var response =  await client.PutAsync("http://localhost:8443/Order/UpdateOrder", content);
         
         if (response.IsSuccessStatusCode)
         {

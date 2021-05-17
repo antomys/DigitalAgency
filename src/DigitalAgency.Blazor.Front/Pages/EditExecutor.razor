@@ -67,7 +67,7 @@ else
     protected override async Task OnInitializedAsync()
     {
         var mechanic = _executorFactory.CreateClient();
-        var result = await mechanic.GetAsync("http://localhost:8443/Client/executor");
+        var result = await mechanic.GetAsync("http://localhost:8443/Client/GetExecutor");
 
         Info = await result.Content.ReadAsStringAsync();
         var options = new JsonSerializerOptions
@@ -107,7 +107,7 @@ else
             };
         
             var content = new StringContent(JsonSerializer.Serialize(newMechanic), Encoding.UTF8, "application/json");
-            var response = await mechanic.PutAsync("http://localhost:8443/Client/executor", content);
+            var response = await mechanic.PutAsync("http://localhost:8443/Client/PutExecutor", content);
         
             if (response.IsSuccessStatusCode)
             {

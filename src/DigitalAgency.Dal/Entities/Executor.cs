@@ -18,8 +18,7 @@ namespace DigitalAgency.Dal.Entities
         public PositionsEnum Position { get; set; }
         public long TelegramId { get; set; }
         public long ChatId { get; set; }
-        
-        public virtual ICollection<Order> ServiceOrders { get; set; }
+        public virtual ICollection<Order> Orders { get; set; }
 
     }
 }

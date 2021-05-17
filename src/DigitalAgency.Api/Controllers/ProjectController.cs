@@ -44,9 +44,10 @@ namespace DigitalAgency.Api.Controllers
             {
                 return BadRequest(result.Errors.Select(x => new { Error = x.ErrorMessage, Code = x.ErrorCode }).ToList());
             }
-            await _projectService.CreateProjectAsync(project);
             _logger.LogDebug("Time request {Time}", DateTime.UtcNow);
-            return Ok(project);
+            if(await _projectService.CreateProjectAsync(project))
+             return Ok(project);
+            return BadRequest();
         }
 
         [HttpDelete]

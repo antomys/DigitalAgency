@@ -15,7 +15,7 @@ namespace DigitalAgency.Dal.Entities
         public int  ClientId { get; set; }
         [ForeignKey("ClientId")]
         public virtual Client Client { get; set; }
-        public int  ExecutorId { get; set; }
+        public int? ExecutorId { get; set; }
         [ForeignKey("ExecutorId")]
         public virtual Executor Executor { get; set; }
         public int ProjectId { get; set; }

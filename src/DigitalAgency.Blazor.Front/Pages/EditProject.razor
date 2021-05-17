@@ -1,7 +1,8 @@
 ﻿@page "/editproject/{id}"
 @using System.Text.Json
 @using System.Text
-@using DigitalAgency.Dal.Entities
+@using DigitalAgency.Bll.Models
+@using Microsoft.AspNetCore.Components
 @using Task = System.Threading.Tasks.Task
 @inject IHttpClientFactory _projectFactory;
 
@@ -44,7 +45,7 @@ else
 
 
 @code {
-    protected Project Project { get; set; }
+    protected ProjectModel Project { get; set; }
     protected string ProjectName { get; set; }
     protected  string ProjectDescription { get; set; }
     protected string ProjectLink { get; set; }
@@ -58,14 +59,14 @@ else
     protected override async Task OnInitializedAsync()
     {
         var mechanic = _projectFactory.CreateClient();
-        var result = await mechanic.GetAsync("http://localhost:8443/Project");
+        var result = await mechanic.GetAsync("http://localhost:8443/Project/GetProject");
 
         Info = await result.Content.ReadAsStringAsync();
         var options = new JsonSerializerOptions
         {
             PropertyNameCaseInsensitive = true,
         };
-        var deserialized = JsonSerializer.Deserialize<List<Project>>(Info, options);
+        var deserialized = JsonSerializer.Deserialize<List<ProjectModel>>(Info, options);
         Project = deserialized?.Where(x=> x.Id.ToString() == Id).First();
         ProjectName = Project?.ProjectName;
         ProjectDescription = Project?.ProjectDescription;
@@ -85,7 +86,7 @@ else
         Project.ProjectDescription = ProjectDescription;
         Project.ProjectLink = ProjectLink;
         var content = new StringContent(JsonSerializer.Serialize(Project), Encoding.UTF8, "application/json");
-        var response = await client.PutAsync("http://localhost:8443/Project", content);
+        var response = await client.PutAsync("http://localhost:8443/Project/PutProject", content);
         
         if (response.IsSuccessStatusCode)
         {

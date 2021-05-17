@@ -29,6 +29,9 @@ namespace DigitalAgency.Dal.Storages
         public async Task<List<Order>> GetOrdersAsync()
         {
             var result = await _context.Orders
+                .Include(x=>x.Project)
+                .Include(x=>x.Client)
+                .Include(x=>x.Executor)
                 .ToListAsync();
             return result;
         }

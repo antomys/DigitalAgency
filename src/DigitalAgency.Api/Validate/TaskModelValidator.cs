@@ -3,7 +3,7 @@ using FluentValidation;
 
 namespace DigitalAgency.Api.Validate
 {
-    public class TaskModelValidator : AbstractValidator<TaskModel>
+    public class TaskModelValidator : AbstractValidator<CardModel>
     {
         public TaskModelValidator()
         {

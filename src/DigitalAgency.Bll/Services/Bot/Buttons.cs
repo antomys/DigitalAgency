@@ -24,7 +24,7 @@ namespace DigitalAgency.Bll.Services.Bot
             var keyOrders = new ConcurrentDictionary<string,string>();
             foreach (var order in orders)
             {
-                var executor = await _executorStorage.GetExecutorByIdAsync(order.ExecutorId);
+                var executor = await _executorStorage.GetExecutorByIdAsync(order.ExecutorId ?? order.ClientId);
                 keyOrders.TryAdd(order.Project.ProjectName 
                                  + " " + order.Project.ProjectDescription 
                                  + " ; state: " + order.StateEnum + " ; executor: " 

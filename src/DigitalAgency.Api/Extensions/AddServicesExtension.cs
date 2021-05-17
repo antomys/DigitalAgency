@@ -42,7 +42,7 @@ namespace DigitalAgency.Api.Extensions
                 .AddTransient<IValidator<ClientModel>, ClientModelValidator>()
                 .AddTransient<IValidator<ProjectModel>, ProjectModelValidator>()
                 .AddTransient<IValidator<ExecutorModel>, ExecutorModelValidator>()
-                .AddTransient<IValidator<TaskModel>, TaskModelValidator>();
+                .AddTransient<IValidator<CardModel>, TaskModelValidator>();
         }
     }
 }

@@ -4,11 +4,12 @@
 @using DigitalAgency.Bll.Models
 @using DigitalAgency.Bll.Models.Enums
 @using Task = System.Threading.Tasks.Task
+@inject NavigationManager _navigationManager
 @inject IHttpClientFactory _executorFactory;
 
 
 <link rel="stylesheet" href="css/bootstrap/bootstrap.min.css" />
-<link href="css/site.css" rel="stylesheet" />\
+<link href="css/site.css" rel="stylesheet" />
 <h1>Add new executor</h1>
 <p />
 <table>
@@ -31,7 +32,7 @@
     <tr>
         <td>Position:</td>
         <select class="custom-select" @onchange="OnPositionValueChanged" title="Region is required ">
-            <option value="Select" selected disabled="disabled">Choose Car</option>
+            <option value="Select" selected disabled="disabled">Choose Position</option>
             @foreach (var car in Enum.GetNames(typeof(PositionsEnum)))
             {
                 <option value="@car">@car</option>
@@ -59,15 +60,24 @@
     private string Alert { get; set; }
     
     [Parameter]  
-    private PositionsEnum ValuePosition { get; set; }
+    public PositionsEnum ValuePosition { get; set; }
     [Parameter]  
     public EventCallback < PositionsEnum > ValuePositionChanged { get; set; }  
     
-    private Task OnPositionValueChanged(ChangeEventArgs e) {  
-        ValuePosition = (PositionsEnum) e.Value;
-        return ValuePositionChanged.InvokeAsync(ValuePosition); 
-    }  
-    
+    private Task OnPositionValueChanged(ChangeEventArgs e)
+    {
+        Enum.TryParse(typeof(PositionsEnum), e.Value.ToString(), true, out var tempPosition);
+        ValuePosition =  (PositionsEnum) (Enum.IsDefined(typeof(PositionsEnum), tempPosition)
+            ? tempPosition
+            : 0);
+        return ValuePositionChanged.InvokeAsync(ValuePosition);
+    }
+
+    protected override void OnInitialized()
+    {
+        ValuePosition = 0;
+    }
+
     protected async Task AddNewMechanic()
     {
         Alert = string.Empty;
@@ -88,11 +98,12 @@
             Position = ValuePosition
         };
         var content = new StringContent(JsonConvert.SerializeObject(executor), Encoding.UTF8, "application/json");
-        var response = await executorFactory.PostAsync("http://localhost:8443/Client/executor", content);
+        var response = await executorFactory.PostAsync("http://localhost:8443/Client/PostExecutor", content);
 
         if (response.IsSuccessStatusCode)
         {
             Alert = "Executor successfully added!";
+            _navigationManager.NavigateTo("executors");
         }
         else
         {

@@ -14,6 +14,6 @@ namespace DigitalAgency.Bll.Models
         public PositionsEnum Position { get; set; }
         public long TelegramId { get; set; }
         public long ChatId { get; set; }
-        public List<OrderModel> ServiceOrders { get; set; }
+        public List<OrderModel> Orders { get; set; }
     }
 }

@@ -7,7 +7,7 @@ namespace DigitalAgency.Bll.Services.Interfaces
     public interface IProjectService
     {
         Task<List<ProjectModel>> GetProjectsAsync();
-        Task CreateProjectAsync(ProjectModel project);
+        Task<bool> CreateProjectAsync(ProjectModel project);
         Task DeleteProjectAsync(int id);
         Task UpdateProjectAsync(ProjectModel project);
     }

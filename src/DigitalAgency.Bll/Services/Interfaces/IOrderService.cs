@@ -12,7 +12,7 @@ namespace DigitalAgency.Bll.Services.Interfaces
         Task<bool> ChangeOrderState(int id, string state);
         Task<List<OrderModel>> GetOrdersAsync();
         Task CreateOrderAsync(OrderModel order);
-        Task UpdateAsync(OrderModel order);
+        Task<bool> UpdateAsync(OrderModel order);
         Task<bool> DeleteOrder(int id);
     }
 }

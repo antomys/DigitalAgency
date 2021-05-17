@@ -4,10 +4,8 @@ namespace DigitalAgency.Dal.Entities.Enums
     {
         Unknown = 0,
         New,
-        Hold,
         Canceled,
         InProgress,
-        Testing,
         Done
     }
 }
