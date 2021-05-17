@@ -1,0 +1,62 @@
+@page "/addclient"
+@using Newtonsoft.Json
+@using System.Text
+@using DigitalAgency.Dal.Entities
+@using Task = System.Threading.Tasks.Task
+@inject IHttpClientFactory _clientFactory;
+
+
+<link rel="stylesheet" href="css/bootstrap/bootstrap.min.css" />
+<link href="css/site.css" rel="stylesheet" />
+
+<h1>Add new client</h1>
+<p />
+<table>
+    <tr>
+        <td>First name:</td>
+        <td><input @bind="FirstName" /></td>
+    </tr>
+    <tr>
+        <td>Middle name:</td>
+        <td><input @bind="MiddleName" /></td>
+    </tr>
+    <tr>
+        <td>Last name:</td>
+        <td><input @bind="LastName" /></td>
+    </tr>
+    <tr>
+        <td>Phone number:</td>
+        <td><input @bind="PhoneNumber" /></td>
+    </tr>
+</table>
+<p />
+<a class="btn btn-secondary" href="clients">Back</a>
+<button class="btn btn-primary" @onclick="AddNewClient">&#10004;Add</button> @Alert
+<p />
+
+@code 
+{
+    protected string FirstName { get; set; }
+    protected string MiddleName { get; set; }
+    protected string LastName { get; set; }
+    protected string PhoneNumber { get; set; }
+    protected string Alert { get; set; }
+
+    
+    protected async Task AddNewClient()
+    {
+        Alert = " ";
+        if (FirstName == string.Empty || MiddleName == string.Empty || LastName == string.Empty || PhoneNumber == string.Empty)
+        {
+            Alert = "Fill all fields!";
+        }
+        var clientFactory = _clientFactory.CreateClient();
+        var client = new Client { FirstName = FirstName, MiddleName = MiddleName, LastName = LastName, PhoneNumber = PhoneNumber};
+        var content = new StringContent(JsonConvert.SerializeObject(client), Encoding.UTF8, "application/json");
+        var response = await clientFactory.PostAsync("http://localhost:8443/Client", content);
+
+        Alert = !response.IsSuccessStatusCode
+            ? "Fill all fields!"
+            : "Client successfully added!";
+    }
+}

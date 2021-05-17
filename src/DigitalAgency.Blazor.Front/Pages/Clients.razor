@@ -1,0 +1,77 @@
+@page "/clients"
+@using System.Text.Json
+@using DigitalAgency.Dal.Entities
+@using Task = System.Threading.Tasks.Task
+@inject IHttpClientFactory _clientFactory;
+
+
+<link rel="stylesheet" href="css/bootstrap/bootstrap.min.css" />
+<link href="css/site.css" rel="stylesheet" />
+
+<h1>Clients</h1>
+<p />
+<a class="btn btn-primary" href="addclient">&#10002;Add client</a>
+
+<p />
+@if (ClientsList == null)
+{
+    <div>Loading...</div>
+}
+else
+{
+    <table class="table">
+        <thead>
+            <tr>
+                <td><b>Id</b></td>
+                <td><b>First name</b></td>
+                <td><b>Middle name</b></td>
+                <td><b>Last name</b></td>
+                <td><b>Phone number</b></td>
+            </tr>
+        </thead>
+        <tbody>
+
+            @foreach (var client in ClientsList)
+            {
+            <tr>
+                <td>@client.Id</td>
+                <td>@client.FirstName</td>
+                <td>@client.MiddleName</td>
+                <td>@client.LastName</td>
+                <td>@client.PhoneNumber</td>
+                <td>
+                    <a class="nav-link" href="editclient/@client.Id">
+                        <span class="oi oi-pencil" aria-hidden="true"></span>Edit
+                    </a>
+                    <a class="nav-link" href="deleteClient/@client.Id">
+                        <span class="oi oi-trash" aria-hidden="true"></span>Delete
+                    </a>
+                </td>
+            </tr>
+            }
+
+        </tbody>
+    </table>
+}
+
+@code 
+{
+    protected List<Client> ClientsList { get; set; }
+    protected string info;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var client = _clientFactory.CreateClient();
+        var result = await client.GetAsync("http://localhost:8443/Client");
+
+        info = await result.Content.ReadAsStringAsync();
+        var options = new JsonSerializerOptions
+        {
+            PropertyNameCaseInsensitive = true,
+        };
+
+        var deserialized = JsonSerializer.Deserialize<List<Client>>(info, options);
+        ClientsList = deserialized?.ToList();
+    }
+
+}

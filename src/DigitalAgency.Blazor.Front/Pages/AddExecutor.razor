@@ -1,0 +1,71 @@
+@page "/addexecutor"
+@using Newtonsoft.Json
+@using System.Text
+@using DigitalAgency.Dal.Entities
+@using Task = System.Threading.Tasks.Task
+@inject IHttpClientFactory _executorFactory;
+
+
+<link rel="stylesheet" href="css/bootstrap/bootstrap.min.css" />
+<link href="css/site.css" rel="stylesheet" />
+
+<h1>Add new executor</h1>
+<p />
+<table>
+    <tr>
+        <td>First name:</td>
+        <td><input @bind="FirstName" /></td>
+    </tr>
+    <tr>
+        <td>Middle name:</td>
+        <td><input @bind="MiddleName" /></td>
+    </tr>
+    <tr>
+        <td>Last name:</td>
+        <td><input @bind="LastName" /></td>
+    </tr>
+    <tr>
+        <td>Phone number:</td>
+        <td><input @bind="PhoneNumber" /></td>
+    </tr>
+    <tr>
+        <td>Position:</td>
+        <td><input @bind="Position"/></td>
+    </tr>
+</table>
+<p />
+<a class="btn btn-secondary" href="executors">Back</a>
+<button class="btn btn-primary" @onclick="AddNewMechanic">&#10004;Add</button> @Alert
+<p />
+
+@code 
+{
+    protected string FirstName { get; set; }
+    protected string MiddleName { get; set; }
+    protected string LastName { get; set; }
+    protected string Position { get; set; }
+    protected string PhoneNumber { get; set; }
+    protected string Alert { get; set; }
+
+    
+    protected async Task AddNewMechanic()
+    {
+        Alert = " ";
+        if (FirstName == string.Empty || MiddleName == string.Empty || LastName == string.Empty || PhoneNumber == string.Empty || Position == string.Empty)
+        {
+            Alert = "Fill all fields!";
+        }
+        var executorFactory = _executorFactory.CreateClient();
+        var executor = new Executor
+        {
+            FirstName = FirstName, MiddleName = MiddleName, LastName = LastName, PhoneNumber = PhoneNumber, 
+            Position = Position
+        };
+        var content = new StringContent(JsonConvert.SerializeObject(executor), Encoding.UTF8, "application/json");
+        var response = await executorFactory.PostAsync("http://localhost:8443/Client/executor", content);
+
+        Alert = !response.IsSuccessStatusCode
+            ? "Fill all fields!"
+            : "Executor successfully added!";
+    }
+}

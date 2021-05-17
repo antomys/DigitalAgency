@@ -1,0 +1,78 @@
+﻿@page "/orders"
+@using Newtonsoft.Json
+@using Task = System.Threading.Tasks.Task
+@using DigitalAgency.Dal.Entities
+@inject IHttpClientFactory _clientFactory;
+
+
+<h1>Service order</h1>
+<p />
+<a class="btn btn-primary" href="addOrder">&#10002;Add order</a>
+
+<p />
+@if (OrdersList == null)
+{
+    <div>Loading...</div>
+}
+else
+{
+
+    <table class="table">
+        <thead>
+            <tr>
+                <td>Id</td>
+                <td>Client Name</td>
+                <td>Executor Name</td>
+                <td>Executor Position</td>
+                <td>Project</td>
+                <td>Creation date </td>
+                <td>Scheduled time</td>
+
+            </tr>
+        </thead>
+        <tbody>
+
+            @foreach (var order in OrdersList)
+            {
+                <tr>
+                    <td>@order.Id</td>
+                    <td>@order.Client.FirstName</td>
+                    <td>@order.Executor.FirstName</td>
+                    <td>@order.Executor.Position</td>
+                    <td>@order.Project.ProjectName</td>
+                    <td>@order.CreationDate</td>
+                    <td>@order.ScheduledTime</td>
+                    <td>
+                        <a class="nav-link" href="editOrder/@order.Id">
+                            <span class="oi oi-pencil" aria-hidden="true"></span>Edit
+                        </a>
+                        <a class="nav-link" href="deleteOrder/@order.Id">
+                            <span class="oi oi-trash" aria-hidden="true"></span>Delete
+                        </a>
+                    </td>
+                </tr>
+
+            }
+
+        </tbody>
+    </table>
+}
+
+@code {
+
+    public List<Order> OrdersList { get; set; }
+    
+    protected string info;
+
+    protected override async Task OnInitializedAsync()
+    {
+
+        var client = _clientFactory.CreateClient();
+        var result = await client.GetAsync("http://localhost:8443/fullOrder");
+
+        info = await result.Content.ReadAsStringAsync();
+        OrdersList = JsonConvert.DeserializeObject<List<Order>>(info);
+        
+    }
+
+}

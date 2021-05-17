@@ -1,0 +1,74 @@
+﻿@page "/projects"
+@using System.Text.Json
+@using DigitalAgency.Dal.Entities
+@using Task = System.Threading.Tasks.Task
+@inject IHttpClientFactory _clientFactory;
+
+
+<link rel="stylesheet" href="css/bootstrap/bootstrap.min.css" />
+<link href="css/site.css" rel="stylesheet" />
+
+<h1>Projects</h1>
+<p />
+<a class="btn btn-primary" href="addproject">&#10002;Add car</a>
+
+<p />
+@if (ProjectsList == null)
+{
+    <div>Loading...</div>
+}
+else
+{
+    <table class="table">
+        <thead>
+            <tr>
+                <td><b>Id</b></td>
+                <td><b>Project Name</b></td>
+                <td><b>Description</b></td>
+                <td><b>Link</b></td>
+            </tr>
+        </thead>
+        <tbody>
+
+            @foreach (var car in ProjectsList)
+            {
+                <tr>
+                    <td>@car.Id</td>
+                    <td>@car.ProjectName</td>
+                    <td>@car.ProjectDescription</td>
+                    <td>@car.ProjectLink</td>
+                    <td>
+                        <a class="nav-link" href="editproject/@car.Id">
+                            <span class="oi oi-pencil" aria-hidden="true"></span>Edit
+                        </a>
+                        <a class="nav-link" href="deleteProject/@car.Id">
+                            <span class="oi oi-trash" aria-hidden="true"></span>Delete
+                        </a>
+                    </td>
+                </tr>
+            }
+
+        </tbody>
+    </table>
+}
+
+@code {
+
+    protected List<Project> ProjectsList { get; set; }
+    protected string info;
+
+    protected override async Task OnInitializedAsync()
+    {
+
+        var client = _clientFactory.CreateClient();
+        var result = await client.GetAsync("http://localhost:8443/Project");
+
+        info = await result.Content.ReadAsStringAsync();
+        var options = new JsonSerializerOptions
+        {
+            PropertyNameCaseInsensitive = true,
+        };
+        ProjectsList = JsonSerializer.Deserialize<List<Project>>(info,options);
+    }
+
+}

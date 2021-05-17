@@ -1,0 +1,121 @@
+﻿@page "/editexecutor/{id}"
+@using System.Text
+@using System.Text.Json
+@using DigitalAgency.Dal.Entities
+@using Task = System.Threading.Tasks.Task
+@inject IHttpClientFactory _executorFactory;
+
+
+<link rel="stylesheet" href="css/bootstrap/bootstrap.min.css" />
+<link href="css/site.css" rel="stylesheet" />
+
+<h1>Update executor</h1>
+<p />
+@if (Executor == null)
+{
+    <div>Loading...</div>
+}
+else
+{
+    <table>
+        <div class="form-group">
+            <input for="Name" disabled="true" class="form-control" @bind="@Executor.Id"/>
+        </div>
+        <tr>
+            <td>First name:</td>
+            <td><input @bind="FirstName"/></td>
+        </tr>
+        <tr>
+            <td>Middle name:</td>
+            <td><input @bind="MiddleName"/></td>
+        </tr>
+        <tr>
+            <td>Last name:</td>
+            <td><input @bind="LastName"/></td>
+        </tr>
+        <tr>
+            <td>Phone number:</td>
+            <td><input @bind="PhoneNumber"/></td>
+        </tr>
+        <tr>
+            <td>Position:</td>
+            <td><input @bind="Position"/></td>
+        </tr>
+    </table>
+    
+}
+<p />
+<a class="btn btn-secondary" href="executors">Back</a>
+<button class="btn btn-primary" @onclick="UpdateClientAsync">&#10004;Save</button> @Alert
+<p />
+
+@code {
+    protected Executor Executor { get; set; }
+    protected string FirstName { get; set; }
+    protected string MiddleName { get; set; }
+    protected string LastName { get; set; }
+    protected string PhoneNumber { get; set; }
+    protected string Position { get; set; }
+    protected string Alert { get; set; }
+    protected string Info;
+
+    [Parameter]
+    public string Id { get; set; }
+    
+
+    protected override async Task OnInitializedAsync()
+    {
+        var mechanic = _executorFactory.CreateClient();
+        var result = await mechanic.GetAsync("http://localhost:8443/Client/executor");
+
+        Info = await result.Content.ReadAsStringAsync();
+        var options = new JsonSerializerOptions
+        {
+            PropertyNameCaseInsensitive = true,
+        };
+        var deserialized = JsonSerializer.Deserialize<List<Executor>>(Info, options);
+        Executor = deserialized?.Where(x => x.Id.ToString() == Id).First();
+        FirstName = Executor?.FirstName;
+        LastName = Executor?.LastName;
+        MiddleName = Executor?.MiddleName;
+        PhoneNumber = Executor?.PhoneNumber;
+        Position = Executor?.Position;
+    }
+
+    protected async Task UpdateClientAsync()
+    {
+        Alert = " ";
+        if (FirstName == string.Empty || MiddleName == string.Empty || LastName == string.Empty || PhoneNumber == string.Empty || Position == string.Empty)
+        {
+            Alert = "Fill all fields!";
+        }
+        else
+        {
+            var mechanic = _executorFactory.CreateClient();
+        
+            var newMechanic = new Executor()
+            { 
+                Id = Executor.Id, 
+                FirstName = FirstName, 
+                MiddleName = MiddleName, 
+                LastName = LastName, 
+                PhoneNumber = PhoneNumber,
+                Position = Position,
+                TelegramId = Executor.TelegramId,
+                ChatId = Executor.ChatId
+            };
+        
+            var content = new StringContent(JsonSerializer.Serialize(newMechanic), Encoding.UTF8, "application/json");
+            var response = await mechanic.PutAsync("http://localhost:8443/Client/executor", content);
+        
+            if (response.IsSuccessStatusCode)
+            {
+                Alert = "Executor successfully edited!!";
+            }
+            else
+            {
+                Alert = await response.Content.ReadAsStringAsync();
+            }
+        }
+    }
+}

@@ -1,0 +1,112 @@
+﻿@page "/addproject"
+@using System.Text
+@using DigitalAgency.Dal.Entities
+@using Newtonsoft.Json
+@using JsonSerializer = System.Text.Json.JsonSerializer
+@using Task = System.Threading.Tasks.Task
+@inject IHttpClientFactory _clientFactory;
+
+
+<link rel="stylesheet" href="css/bootstrap/bootstrap.min.css" />
+<link href="css/site.css" rel="stylesheet" />
+
+<h1>Add new project</h1>
+
+@if(Clients == null)  
+{  
+<p>  
+    <em>Loading ...</em>  
+</p>  
+}
+else
+{
+    <p />
+    <table>
+        <tr>
+            <td>Project Description:</td>
+            <td><input @bind="ProjectDescription"/></td>
+        </tr>
+        <tr>
+            <td>Project Link:</td>
+            <td><input @bind="ProjectLink"/></td>
+        </tr>
+        <tr>
+            <td>Project Name:</td>
+            <td><input @bind="ProjectName"/></td>
+        </tr>
+        <tr>
+        <td>Project creator: </td>
+            <select class="custom-select" @onchange="OnValueChanged" title="Region is required ">
+                <option value="Select" selected disabled="disabled">Choose Owner</option>
+                @foreach (var region in Clients)
+                {
+                    <option value="@region.Id">@region.FirstName @region.LastName</option>
+                }
+            </select>
+        </tr>
+    </table>
+    <p/>
+    <a class="btn btn-secondary" href="projects">Back</a>
+    <button class="btn btn-primary" @onclick="AddNewProject">&#10004;Add</button>@Alert
+    <p/>
+}
+
+@code {
+    protected List<Client> Clients { get; set; }
+    protected string ProjectName { get; set; }
+    protected string ProjectDescription { get; set; }
+    protected string ProjectLink { get; set; }
+    protected string Alert { get; set; }
+    
+    [Parameter]  
+    public string Value { get; set; }  
+    [Parameter]  
+    public EventCallback <string> ValueChanged { get; set; }  
+
+    protected override async Task OnInitializedAsync()
+    {
+        var client = _clientFactory.CreateClient();
+        var result = await client.GetAsync("http://localhost:8443/Client");
+
+        var info = await result.Content.ReadAsStringAsync();
+        var deserialized = JsonConvert.DeserializeObject<List<Client>>(info);
+        Clients = deserialized?.ToList();
+    }
+    private Task OnValueChanged(ChangeEventArgs e) {  
+        Value = e.Value.ToString();  
+        return ValueChanged.InvokeAsync(Value);  
+    }  
+
+    protected async void AddNewProject()
+    {
+        Alert = " ";
+        if(ProjectName == string.Empty || ProjectDescription == string.Empty || ProjectLink == string.Empty)
+        {
+            Alert = "Fill all fields!";
+            return;
+            
+        }
+        var client = _clientFactory.CreateClient();
+        
+        var project = new Project 
+        { 
+            ProjectName = ProjectName, 
+            ProjectDescription = ProjectDescription, 
+            ProjectLink = ProjectLink,
+            OwnerId = int.Parse(Value)
+        
+        };
+        var content = new StringContent(JsonSerializer.Serialize(project),Encoding.UTF8,"application/json");
+        var response = await client.PostAsync("http://localhost:8443/Project", content);
+
+        if (response.IsSuccessStatusCode)
+        {
+            Alert = "Project successfully added!";
+        }
+        else
+        {
+            Alert = await response.Content.ReadAsStringAsync();
+        }
+
+    }
+}

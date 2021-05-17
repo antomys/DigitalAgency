@@ -1,0 +1,130 @@
+﻿@page "/editOrder/{id}"
+@using System.Text
+@using DigitalAgency.Dal.Entities
+@using Microsoft.AspNetCore.Components
+@using Newtonsoft.Json
+@using JsonSerializer = System.Text.Json.JsonSerializer
+@using Task = System.Threading.Tasks.Task
+@inject IHttpClientFactory _clientFactory;
+
+
+<link rel="stylesheet" href="css/bootstrap/bootstrap.min.css" />
+<link href="css/site.css" rel="stylesheet" />
+
+@if (Order == null || Executors == null)
+{
+    <div>Loading...</div>
+}
+else
+{
+<h1>Update order</h1>
+<p />
+<table>
+    <div class="form-group">
+        <input for="Name" disabled="true"class="form-control" @bind="@Order.Id" />
+    </div>
+    <tr>
+        <td>Client:</td>
+        <td><input disabled="true" @bind="Order.Client.FirstName" /></td>
+    </tr>
+    <tr>
+        <td>Project name</td>
+        <td><input disabled="true"@bind="Order.Project.ProjectName"/></td>
+    </tr>
+    <tr>
+        <td>Mechanic: </td>
+        <select class="custom-select" @onchange="OnMechanicValueChanged" title="Region is required ">
+            <option value="Select" selected disabled="disabled">@Order.Executor.FirstName @Order.Executor.LastName</option>
+            @foreach (var client in Executors)
+            {
+                <option value="@client.Id">@client.FirstName @client.LastName</option>
+            }
+        </select>
+    </tr>
+    <tr>
+        <td>Scheduled date</td>
+        <input type="date" @bind="ScheduledDate"/>
+    </tr>
+    <tr>
+        <td>State</td>
+        <td><input @bind="State"/></td>
+    </tr>
+</table>
+<p />
+<a class="btn btn-secondary" href="orders">Back</a>
+<button type="button" class="btn btn-primary" @onclick="@PutOrder">&#10004;Save</button> @Alert
+<p />
+}
+
+@code {
+    
+    protected Order Order { get; set; }
+    protected List<Executor> Executors{get; set; }
+    protected string State { get; set; }
+    protected string Alert { get; set; }
+    
+    [Parameter]
+    public DateTime ScheduledDate { get; set; }
+    [Parameter]  
+    public EventCallback < DateTime> DateChanged { get; set; } 
+
+    [Parameter]
+    public string Id { get; set; }
+    
+    [Parameter]  
+    public string ValueMechanic { get; set; }  
+    [Parameter]  
+    public EventCallback < string > ValueMechanicChanged { get; set; }  
+    
+    
+    private Task OnMechanicValueChanged(ChangeEventArgs e) {  
+        ValueMechanic = e.Value.ToString();
+        return ValueMechanicChanged.InvokeAsync(ValueMechanic); 
+    }  
+    
+    protected override async Task OnInitializedAsync()
+    {
+        var client = _clientFactory.CreateClient();
+        var result = await client.GetAsync("http://localhost:8443/fullOrder");
+
+        var info = await result.Content.ReadAsStringAsync();
+        
+        var deserialized = JsonConvert.DeserializeObject<List<Order>>(info);
+        Order = deserialized.First(x=> x.Id.ToString() == Id);
+        ScheduledDate = Order.ScheduledTime.Date;
+        State = Order.State;
+        
+        result = await client.GetAsync("http://localhost:8443/Client/executor");
+        info = await result.Content.ReadAsStringAsync();
+        var newDeserialized = JsonConvert.DeserializeObject<List<Executor>>(info);
+        Executors = newDeserialized?.ToList();
+    }
+    
+    protected async Task PutOrder()
+    {
+        Alert = " ";
+        var client = _clientFactory.CreateClient();
+        
+        var serviceOrder = new Order
+        {
+            ClientId = Order.ClientId,
+            ExecutorId = int.Parse(ValueMechanic),
+            ProjectId = Order.ProjectId,
+            ScheduledTime = Order.ScheduledTime,
+            CreationDate = Order.CreationDate,
+            State = State
+        };
+        
+        var content = new StringContent(JsonSerializer.Serialize(serviceOrder), Encoding.UTF8, "application/json");
+        var response =  await client.PutAsync("http://localhost:8443/Order", content);
+        
+        if (response.IsSuccessStatusCode)
+        {
+            Alert = "Edited order";
+        }
+        else
+        {
+            Alert = await response.Content.ReadAsStringAsync();
+        }
+    }
+}
