@@ -21,8 +21,8 @@ namespace DigitalAgency.Dal.Entities
         public int ProjectId { get; set; }
         [ForeignKey("ProjectId")]
         public virtual Project Project { get; set; }
-        public DateTime CreationDate { get; set; }
-        public DateTime ScheduledTime { get; set; }
+        public DateTimeOffset CreationDate { get; set; }
+        public DateTimeOffset ScheduledTime { get; set; }
         public OrderStateEnum StateEnum { get; set; }
         
         public virtual ICollection<Card> Tasks { get; set; }

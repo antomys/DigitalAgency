@@ -113,9 +113,9 @@ namespace DigitalAgency.Bll.Services
             
             thisExecutor.Orders = mappedExecutor.Orders ?? thisExecutor.Orders;
             thisExecutor.Position =
-                Enum.IsDefined(typeof(PositionsEnum), thisExecutor.Position)
-                    ? mappedExecutor.Position
-                    : Dal.Entities.Enums.PositionsEnum.Unknown;
+                Enum.IsDefined(typeof(PositionsEnum), executor.Position)
+                    ? (Dal.Entities.Enums.PositionsEnum) mappedExecutor.Position
+                    : (Dal.Entities.Enums.PositionsEnum) PositionsEnum.Unknown;
             thisExecutor.FirstName = mappedExecutor.FirstName ?? thisExecutor.FirstName;
             thisExecutor.LastName = mappedExecutor.LastName ?? thisExecutor.LastName;
 

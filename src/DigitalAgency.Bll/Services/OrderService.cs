@@ -55,7 +55,7 @@ namespace DigitalAgency.Bll.Services
 
             await _orderStorage.CreateOrderAsync(mapped);
         }
-
+        
         public async Task<bool> UpdateAsync(OrderModel order)
         {
             var thisOrder = await _orderStorage.GetOrder(x => x.Id == order.Id);
@@ -63,10 +63,10 @@ namespace DigitalAgency.Bll.Services
                 return false;
             var mappedOrder = _mapper.Map<Order>(order);
 
-            thisOrder.Executor = mappedOrder.Executor ?? thisOrder.Executor;
+            thisOrder.ExecutorId = mappedOrder.ExecutorId ?? thisOrder.Executor.Id;
             thisOrder.ScheduledTime = mappedOrder.ScheduledTime;
             
-            await _orderStorage.UpdateAsync(_mapper.Map<Order>(order));
+            await _orderStorage.UpdateAsync(thisOrder);
             return true;
         }
 
@@ -75,7 +75,6 @@ namespace DigitalAgency.Bll.Services
             if (await _orderStorage.GetOrder(order => order.Id == id) == null) return false;
             await _orderStorage.DeleteOrderAsync(id);
             return true;
-
         }
     }
 }

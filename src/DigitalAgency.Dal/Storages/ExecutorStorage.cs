@@ -36,7 +36,7 @@ namespace DigitalAgency.Dal.Storages
         }
         public async Task<List<Executor>> GetExecutorsAsync()
         {
-            return await _context.Executors.ToListAsync();
+            return await _context.Executors.Include(x=>x.Orders).ToListAsync();
         }
         public async Task<Executor> GetExecutorByIdAsync(int id)
         {

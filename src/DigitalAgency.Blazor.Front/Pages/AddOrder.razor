@@ -76,9 +76,9 @@ else
     protected string Alert { get; set; }
     
     [Parameter]
-    public DateTime ScheduledDate { get; set; }
+    public DateTimeOffset ScheduledDate { get; set; }
     [Parameter]  
-    public EventCallback < DateTime> DateChanged { get; set; } 
+    public EventCallback < DateTimeOffset> DateChanged { get; set; } 
     
     [Parameter]  
     public string ValueClient { get; set; }  
@@ -101,10 +101,10 @@ else
         var result = await client.GetAsync("http://localhost:8443/Client/GetClient");
 
         var info = await result.Content.ReadAsStringAsync();
-        ScheduledDate = DateTime.Now;
+        ScheduledDate = DateTimeOffset.Now;
         var deserialized = JsonConvert.DeserializeObject<List<ClientModel>>(info);
         Clients = deserialized?.ToList();
-        ScheduledDate = DateTime.Now;
+        ScheduledDate = DateTimeOffset.Now;
 
         result = await client.GetAsync("http://localhost:8443/Client/GetExecutor");
         info = await result.Content.ReadAsStringAsync();
@@ -149,7 +149,7 @@ else
             Executor = int.TryParse(ValueExecutor, out var id)? new ExecutorModel{Id = id} : null,
             Project = new ProjectModel{Id = int.Parse(ValueProject)},
             ScheduledTime = ScheduledDate,
-            CreationDate = DateTime.Now,
+            CreationDate = DateTimeOffset.Now,
             StateEnum = OrderStateEnum.New
         };
         var content = new StringContent(JsonSerializer.Serialize(serviceOrder), Encoding.UTF8, "application/json");

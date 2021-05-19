@@ -39,8 +39,14 @@ else
             <td><input @bind="PhoneNumber"/></td>
         </tr>
         <tr>
-            <td>Position:</td>
-            <td><input @bind="Position"/></td>
+           <td>Position:</td>
+                   <select class="custom-select" @onchange="OnPositionValueChanged" title="Region is required ">
+                       <option value="Select" selected disabled="disabled">Choose Position</option>
+                       @foreach (var car in Enum.GetNames(typeof(PositionsEnum)))
+                       {
+                           <option value="@car">@car</option>
+                       }
+                   </select>
         </tr>
     </table>
     
@@ -56,12 +62,25 @@ else
     protected string MiddleName { get; set; }
     protected string LastName { get; set; }
     protected string PhoneNumber { get; set; }
-    protected PositionsEnum Position { get; set; }
     protected string Alert { get; set; }
     protected string Info;
+    
+    [Parameter]  
+    public PositionsEnum ValuePosition { get; set; }
+    [Parameter]  
+    public EventCallback < PositionsEnum > ValuePositionChanged { get; set; }  
 
     [Parameter]
     public string Id { get; set; }
+    
+    private Task OnPositionValueChanged(ChangeEventArgs e)
+    {
+        Enum.TryParse(typeof(PositionsEnum), e.Value.ToString(), true, out var tempPosition);
+        ValuePosition =  (PositionsEnum) (Enum.IsDefined(typeof(PositionsEnum), tempPosition)
+            ? tempPosition
+            : 0);
+        return ValuePositionChanged.InvokeAsync(ValuePosition);
+    }
     
 
     protected override async Task OnInitializedAsync()
@@ -80,7 +99,7 @@ else
         LastName = Executor?.LastName;
         MiddleName = Executor?.MiddleName;
         PhoneNumber = Executor?.PhoneNumber;
-        Position = Executor.Position;
+        ValuePosition = Executor != null ? ValuePosition = Executor.Position : 0;
     }
 
     protected async Task UpdateClientAsync()
@@ -101,7 +120,7 @@ else
                 MiddleName = MiddleName, 
                 LastName = LastName, 
                 PhoneNumber = PhoneNumber,
-                Position = Position,
+                Position = ValuePosition,
                 TelegramId = Executor.TelegramId,
                 ChatId = Executor.ChatId
             };
