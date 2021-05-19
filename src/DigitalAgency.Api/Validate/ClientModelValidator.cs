@@ -1,9 +1,10 @@
 ﻿using System.Linq;
+using DigitalAgency.Bll.Models;
 using FluentValidation;
 
 namespace DigitalAgency.Api.Validate
 {
-    public class ClientModelValidator : AbstractValidator<DigitalAgency.Dal.Entities.Client>
+    public class ClientModelValidator : AbstractValidator<ClientModel>
     {
         public ClientModelValidator()
         {
@@ -28,9 +29,9 @@ namespace DigitalAgency.Api.Validate
              .WithMessage("Not valid phone number");
         }
 
-        public bool IsPhoneValid(string PhoneNumber)
+        private static bool IsPhoneValid(string phoneNumber)
         {
-            return !(!PhoneNumber.StartsWith("+")|| !PhoneNumber.Substring(1).All(c => char.IsDigit(c)));
+            return !(!phoneNumber.StartsWith("+")|| !phoneNumber.Substring(1).All(char.IsDigit));
         }
     }
 }

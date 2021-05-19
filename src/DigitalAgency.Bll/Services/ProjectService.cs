@@ -1,62 +1,60 @@
-﻿using System.Collections.Generic;
-using System.Linq;
+using System.Collections.Generic;
 using System.Threading.Tasks;
+using AutoMapper;
+using DigitalAgency.Bll.Models;
 using DigitalAgency.Bll.Services.Interfaces;
-using DigitalAgency.Dal.Context;
 using DigitalAgency.Dal.Entities;
-using Microsoft.EntityFrameworkCore;
-using Task = System.Threading.Tasks.Task;
+using DigitalAgency.Dal.Storages.Interfaces;
 
 namespace DigitalAgency.Bll.Services
 {
     public class ProjectService : IProjectService
     {
-        private readonly ServicingContext _context;
-        public ProjectService(ServicingContext context)
-        {
-            _context = context;
+        private readonly IMapper _mapper;
+        private readonly IProjectStorage _projectStorage;
 
+        public ProjectService(IProjectStorage projectStorage, IMapper mapper)
+        {
+            _projectStorage = projectStorage;
+            _mapper = mapper;
+        }
 
-        }
-        public async Task<Project> CreateProjectAsync(Project newProject)
+        public async Task<List<ProjectModel>> GetProjectsAsync()
         {
-            var thisCar = await _context.Projects.AddAsync(newProject);
-            await _context.SaveChangesAsync();
-            return thisCar.Entity;
+            return _mapper.Map<List<ProjectModel>>(await _projectStorage.GetProjectsAsync());
         }
-        public async Task<Project> GetLastAdded(int ownerId)
+
+        public async Task<bool> CreateProjectAsync(ProjectModel project)
         {
-            return await _context.Projects.OrderBy(x=> x.Id).Where(x => x.OwnerId == ownerId).LastOrDefaultAsync();
+            var thisProject = await _projectStorage
+                .GetProjectAsync(x => x.ProjectName == project.ProjectName && x.Client.Id == project.Client.Id);
+            if (project.Client == null ||  thisProject != null)
+            {
+                return false;
+            }
+            var mappedProject = _mapper.Map<Project>(project);
+            await _projectStorage.CreateProjectAsync(mappedProject);
+            return true;
         }
+
         public async Task DeleteProjectAsync(int id)
         {
-            var client = await _context.Projects.FindAsync(id);
+            if(await _projectStorage.GetProjectAsync(x=> x.Id == id) != null)
+                await _projectStorage.DeleteProjectAsync(id);
+        }
 
-            _context.Projects.Remove(client);
-            await _context.SaveChangesAsync();
-        }
-        public async Task<List<Project>> GetProjectAsync()
+        public async Task UpdateProjectAsync(ProjectModel project)
         {
-            return await _context.Projects.ToListAsync();
-        }
-        public async Task<List<Project>> GetClientProjectsAsync(Client thisClient)
-        {
-            return await _context.Projects.Where(x => x.OwnerId == thisClient.Id).ToListAsync();
-        }
-        public async Task<Project> GetProjectByIdAsync(int carId)
-        {
-            return await _context.Projects.FindAsync(carId);
-        }
-        public async Task UpdateProjectAsync(Project project)
-        {
-            var existingCar = await _context.Projects.FirstOrDefaultAsync(c => c.Id == project.Id);
-            if (existingCar != null)
-            {
-                existingCar.ProjectName = project.ProjectName;
-                existingCar.ProjectDescription = project.ProjectDescription;
-                existingCar.ProjectLink = project.ProjectLink;
-                await _context.SaveChangesAsync();
-            }
+            var thisProject = await _projectStorage.GetProjectAsync(x => x.Id == project.Id);
+            if (thisProject?.Client == null) return;
+            
+            var mappedProject = _mapper.Map<Project>(project);
+
+            thisProject.ProjectDescription = mappedProject.ProjectDescription ?? thisProject.ProjectDescription;
+            thisProject.ProjectLink = mappedProject.ProjectLink ?? thisProject.ProjectDescription;
+            thisProject.ProjectFilePath = mappedProject.ProjectFilePath ?? thisProject.ProjectFilePath;
+
+            await _projectStorage.UpdateProjectAsync(thisProject);
         }
     }
 }

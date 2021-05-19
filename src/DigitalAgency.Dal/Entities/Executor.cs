@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using DigitalAgency.Dal.Entities.Enums;
 
 namespace DigitalAgency.Dal.Entities
 {
@@ -14,11 +15,10 @@ namespace DigitalAgency.Dal.Entities
         public string MiddleName { get; set; }
         public string LastName { get; set; }
         public string PhoneNumber { get; set; }
-        public string Position { get; set; }
+        public PositionsEnum Position { get; set; }
         public long TelegramId { get; set; }
         public long ChatId { get; set; }
-        
-        public virtual ICollection<Order> ServiceOrders { get; set; }
+        public virtual ICollection<Order> Orders { get; set; }
 
     }
 }

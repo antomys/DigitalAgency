@@ -1,32 +1,33 @@
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using DigitalAgency.Bll.Services.Interfaces;
+using DigitalAgency.Bll.Services.Bot.Interfaces;
 using DigitalAgency.Dal.Entities;
+using DigitalAgency.Dal.Storages.Interfaces;
 using Telegram.Bot;
 using Task = System.Threading.Tasks.Task;
 
 namespace DigitalAgency.Bll.Services.Bot
 {
-    public class Buttons
+    public class Buttons : IButtons
     {
-        private readonly IExecutorService _executorService;
+        private readonly IExecutorStorage _executorStorage;
         private readonly ITelegramBotClient _telegram;
 
-        public Buttons(IExecutorService executorService, ITelegramBotClient telegram)
+        public Buttons(IExecutorStorage executorStorage, ITelegramBotClient telegram)
         {
-            _executorService = executorService;
+            _executorStorage = executorStorage;
             _telegram = telegram;
         }
 
-        private async Task ViewOrderButtons(IEnumerable<Order> orders, long chatId)
+        public async Task ViewOrderButtons(IEnumerable<Order> orders, long chatId)
         {
             var keyOrders = new ConcurrentDictionary<string,string>();
             foreach (var order in orders)
             {
-                var executor = await _executorService.GetExecutorByIdAsync(order.ExecutorId);
+                var executor = await _executorStorage.GetExecutorByIdAsync(order.ExecutorId ?? order.ClientId);
                 keyOrders.TryAdd(order.Project.ProjectName 
                                  + " " + order.Project.ProjectDescription 
-                                 + " ; state: " + order.State + " ; executor: " 
+                                 + " ; state: " + order.StateEnum + " ; executor: " 
                                  + executor.FirstName, 
                     string.Concat(order.GetType().ToString(),";",order.Id));
             }
@@ -36,7 +37,7 @@ namespace DigitalAgency.Bll.Services.Bot
             await _telegram.SendTextMessageAsync(chatId, "Your active orders", replyMarkup: keyboard);
         }
         
-        private async Task ViewProjectButtons(IEnumerable<Project> projects, long chatId)
+        public async Task ViewProjectButtons(IEnumerable<Project> projects, long chatId)
         {
             var keyOrders = new ConcurrentDictionary<string,string>();
             foreach (var project in projects)
@@ -49,7 +50,7 @@ namespace DigitalAgency.Bll.Services.Bot
             await _telegram.SendTextMessageAsync(chatId, "Your active projects", replyMarkup: keyboard);
         }
         
-        private async Task AddOrderViewProjectButtons(IEnumerable<Project> projects, long chatId, string key = "project")
+        public async Task AddOrderViewProjectButtons(IEnumerable<Project> projects, long chatId, string key = "project")
         {
             var keyOrders = new ConcurrentDictionary<string,string>();
             foreach (var project in projects)

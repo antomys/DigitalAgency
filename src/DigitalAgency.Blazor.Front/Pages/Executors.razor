@@ -1,6 +1,6 @@
 @page "/executors"
 @using System.Text.Json
-@using DigitalAgency.Dal.Entities
+@using DigitalAgency.Bll.Models
 @using Task = System.Threading.Tasks.Task
 @inject IHttpClientFactory _executorFactory;
 
@@ -58,21 +58,21 @@ else
 
 @code 
 {
-    protected List<Executor> ExecutorsList { get; set; }
+    protected List<ExecutorModel> ExecutorsList { get; set; }
     protected string Info;
 
     protected override async Task OnInitializedAsync()
     {
 
         var mechanic = _executorFactory.CreateClient();
-        var result = await mechanic.GetAsync("http://localhost:8443/Client/executor");
+        var result = await mechanic.GetAsync("http://localhost:8443/Client/GetExecutor");
 
         Info = await result.Content.ReadAsStringAsync();
         var options = new JsonSerializerOptions
         {
             PropertyNameCaseInsensitive = true,
         };
-        var deserialized = JsonSerializer.Deserialize<List<Executor>>(Info, options);
+        var deserialized = JsonSerializer.Deserialize<List<ExecutorModel>>(Info, options);
         ExecutorsList = deserialized?.ToList() ;
     }
 

@@ -13,11 +13,13 @@ namespace DigitalAgency.Dal.Entities
         public string ProjectName { get; set; }
         public string ProjectDescription { get; set; }
         public string ProjectLink { get; set; }
+        
+        public string ProjectFilePath { get; set; }
         public int OwnerId { get; set; }
         
         [ForeignKey("OwnerId")]
         public virtual Client Client { get; set; }
-        public virtual ICollection<Order> ServiceOrders { get; set; }
+        public virtual ICollection<Order> Orders { get; set; }
         
     }
 }

@@ -1,6 +1,7 @@
 using System;
 using DigitalAgency.Bll.Services.Interfaces;
 using DigitalAgency.Dal.Entities;
+using DigitalAgency.Dal.Storages.Interfaces;
 using Microsoft.Extensions.Options;
 using Telegram.Bot;
 using Telegram.Bot.Types;
@@ -11,20 +12,20 @@ namespace DigitalAgency.Bll.Services.Bot
 {
     public class ProcessReply
     {
-        private readonly IProjectService _projectService;
+        private readonly IProjectStorage _projectStorage;
         private readonly ITelegramBotClient _telegram;
-        private readonly IOrderService _orderService;
+        private readonly IOrderStorage _orderStorage;
         private readonly BotConfiguration _botConfiguration;
         
         public ProcessReply(
-            IOrderService orderService, 
+            IOrderStorage orderStorage, 
             ITelegramBotClient telegram, 
-            IProjectService projectService, 
+            IProjectStorage projectStorage, 
             IOptions<BotConfiguration> botConfiguration)
         {
-            _orderService = orderService;
+            _orderStorage = orderStorage;
             _telegram = telegram;
-            _projectService = projectService;
+            _projectStorage = projectStorage;
             _botConfiguration = botConfiguration.Value;
         }
          public async Task ProcessClientReplies(Message message, Client thisClient, Update update) 
@@ -36,7 +37,7 @@ namespace DigitalAgency.Bll.Services.Bot
              {
                  case "please write project name":
                  {
-                     await _projectService.CreateProjectAsync(new Project {ProjectName = message.Text, OwnerId = thisClient.Id});
+                     await _projectStorage.CreateProjectAsync(new Project {ProjectName = message.Text, OwnerId = thisClient.Id});
                             
                      await _telegram.SendTextMessageAsync(chatId, $"Please write project description",
                          replyMarkup: new ForceReplyMarkup());
@@ -45,10 +46,10 @@ namespace DigitalAgency.Bll.Services.Bot
                  }
                  case "please write project description":
                  {
-                     var car = await _projectService.GetLastAdded(thisClient.Id);
+                     var car = await _projectStorage.GetLastAdded(thisClient.Id);
                      car.ProjectDescription = message.Text;
                             
-                     await _projectService.UpdateProjectAsync(car);
+                     await _projectStorage.UpdateProjectAsync(car);
                             
                      await _telegram.SendTextMessageAsync(chatId, "Please insert project link",
                          replyMarkup: new ForceReplyMarkup());
@@ -56,10 +57,10 @@ namespace DigitalAgency.Bll.Services.Bot
                  }
                  case "please insert project link":
                  {
-                     var car = await _projectService.GetLastAdded(thisClient.Id);
+                     var car = await _projectStorage.GetLastAdded(thisClient.Id);
                      car.ProjectLink = message.Text;
                             
-                     await _projectService.UpdateProjectAsync(car);
+                     await _projectStorage.UpdateProjectAsync(car);
         
                      await _telegram.SendTextMessageAsync(chatId, "Great! Your car has been added!",
                          replyMarkup: KeyboardMessages.DefaultKeyboardMessage(_botConfiguration.CommandsClient));
@@ -67,10 +68,10 @@ namespace DigitalAgency.Bll.Services.Bot
                  }
                  case "please enter scheduled time for order":
                  {
-                     var order = await _orderService.GetLastAdded(thisClient.Id);
+                     var order = await _orderStorage.GetLastAdded(thisClient.Id);
                      order.ScheduledTime = DateTime.Parse(message.Text);
         
-                     await _orderService.UpdateAsync(order);
+                     await _orderStorage.UpdateAsync(order);
                             
                      await _telegram.SendTextMessageAsync(chatId, "Great! Your order has been added!\nWait for operator confirmation",
                          replyMarkup: KeyboardMessages.DefaultKeyboardMessage(_botConfiguration.CommandsClient));

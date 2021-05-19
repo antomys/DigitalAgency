@@ -1,7 +1,8 @@
 ﻿@page "/editexecutor/{id}"
 @using System.Text
 @using System.Text.Json
-@using DigitalAgency.Dal.Entities
+@using DigitalAgency.Bll.Models
+@using DigitalAgency.Bll.Models.Enums
 @using Task = System.Threading.Tasks.Task
 @inject IHttpClientFactory _executorFactory;
 
@@ -38,8 +39,14 @@ else
             <td><input @bind="PhoneNumber"/></td>
         </tr>
         <tr>
-            <td>Position:</td>
-            <td><input @bind="Position"/></td>
+           <td>Position:</td>
+                   <select class="custom-select" @onchange="OnPositionValueChanged" title="Region is required ">
+                       <option value="Select" selected disabled="disabled">Choose Position</option>
+                       @foreach (var car in Enum.GetNames(typeof(PositionsEnum)))
+                       {
+                           <option value="@car">@car</option>
+                       }
+                   </select>
         </tr>
     </table>
     
@@ -50,42 +57,55 @@ else
 <p />
 
 @code {
-    protected Executor Executor { get; set; }
+    protected ExecutorModel Executor { get; set; }
     protected string FirstName { get; set; }
     protected string MiddleName { get; set; }
     protected string LastName { get; set; }
     protected string PhoneNumber { get; set; }
-    protected string Position { get; set; }
     protected string Alert { get; set; }
     protected string Info;
+    
+    [Parameter]  
+    public PositionsEnum ValuePosition { get; set; }
+    [Parameter]  
+    public EventCallback < PositionsEnum > ValuePositionChanged { get; set; }  
 
     [Parameter]
     public string Id { get; set; }
+    
+    private Task OnPositionValueChanged(ChangeEventArgs e)
+    {
+        Enum.TryParse(typeof(PositionsEnum), e.Value.ToString(), true, out var tempPosition);
+        ValuePosition =  (PositionsEnum) (Enum.IsDefined(typeof(PositionsEnum), tempPosition)
+            ? tempPosition
+            : 0);
+        return ValuePositionChanged.InvokeAsync(ValuePosition);
+    }
     
 
     protected override async Task OnInitializedAsync()
     {
         var mechanic = _executorFactory.CreateClient();
-        var result = await mechanic.GetAsync("http://localhost:8443/Client/executor");
+        var result = await mechanic.GetAsync("http://localhost:8443/Client/GetExecutor");
 
         Info = await result.Content.ReadAsStringAsync();
         var options = new JsonSerializerOptions
         {
             PropertyNameCaseInsensitive = true,
         };
-        var deserialized = JsonSerializer.Deserialize<List<Executor>>(Info, options);
+        var deserialized = JsonSerializer.Deserialize<List<ExecutorModel>>(Info, options);
         Executor = deserialized?.Where(x => x.Id.ToString() == Id).First();
         FirstName = Executor?.FirstName;
         LastName = Executor?.LastName;
         MiddleName = Executor?.MiddleName;
         PhoneNumber = Executor?.PhoneNumber;
-        Position = Executor?.Position;
+        ValuePosition = Executor != null ? ValuePosition = Executor.Position : 0;
     }
 
     protected async Task UpdateClientAsync()
     {
         Alert = " ";
-        if (FirstName == string.Empty || MiddleName == string.Empty || LastName == string.Empty || PhoneNumber == string.Empty || Position == string.Empty)
+        if (FirstName == string.Empty || MiddleName == string.Empty || LastName == string.Empty || PhoneNumber == string.Empty)
         {
             Alert = "Fill all fields!";
         }
@@ -93,20 +113,20 @@ else
         {
             var mechanic = _executorFactory.CreateClient();
         
-            var newMechanic = new Executor()
+            var newMechanic = new ExecutorModel
             { 
                 Id = Executor.Id, 
                 FirstName = FirstName, 
                 MiddleName = MiddleName, 
                 LastName = LastName, 
                 PhoneNumber = PhoneNumber,
-                Position = Position,
+                Position = ValuePosition,
                 TelegramId = Executor.TelegramId,
                 ChatId = Executor.ChatId
             };
         
             var content = new StringContent(JsonSerializer.Serialize(newMechanic), Encoding.UTF8, "application/json");
-            var response = await mechanic.PutAsync("http://localhost:8443/Client/executor", content);
+            var response = await mechanic.PutAsync("http://localhost:8443/Client/PutExecutor", content);
         
             if (response.IsSuccessStatusCode)
             {

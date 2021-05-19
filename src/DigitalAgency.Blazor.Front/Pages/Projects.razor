@@ -1,6 +1,6 @@
 ﻿@page "/projects"
 @using System.Text.Json
-@using DigitalAgency.Dal.Entities
+@using DigitalAgency.Bll.Models
 @using Task = System.Threading.Tasks.Task
 @inject IHttpClientFactory _clientFactory;
 
@@ -10,7 +10,7 @@
 
 <h1>Projects</h1>
 <p />
-<a class="btn btn-primary" href="addproject">&#10002;Add car</a>
+<a class="btn btn-primary" href="addproject">&#10002;Add project</a>
 
 <p />
 @if (ProjectsList == null)
@@ -54,21 +54,21 @@ else
 
 @code {
 
-    protected List<Project> ProjectsList { get; set; }
-    protected string info;
+    protected List<ProjectModel> ProjectsList { get; set; }
+    protected string Info;
 
     protected override async Task OnInitializedAsync()
     {
 
         var client = _clientFactory.CreateClient();
-        var result = await client.GetAsync("http://localhost:8443/Project");
+        var result = await client.GetAsync("http://localhost:8443/Project/GetProject");
 
-        info = await result.Content.ReadAsStringAsync();
+        Info = await result.Content.ReadAsStringAsync();
         var options = new JsonSerializerOptions
         {
             PropertyNameCaseInsensitive = true,
         };
-        ProjectsList = JsonSerializer.Deserialize<List<Project>>(info,options);
+        ProjectsList = JsonSerializer.Deserialize<List<ProjectModel>>(Info,options);
     }
 
 }

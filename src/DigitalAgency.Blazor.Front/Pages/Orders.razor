@@ -1,7 +1,8 @@
 ﻿@page "/orders"
 @using Newtonsoft.Json
 @using Task = System.Threading.Tasks.Task
-@using DigitalAgency.Dal.Entities
+@using DigitalAgency.Bll.Models
+@using DigitalAgency.Bll.Models.Enums
 @inject IHttpClientFactory _clientFactory;
 
 
@@ -37,8 +38,17 @@ else
                 <tr>
                     <td>@order.Id</td>
                     <td>@order.Client.FirstName</td>
-                    <td>@order.Executor.FirstName</td>
-                    <td>@order.Executor.Position</td>
+                    @if (order.Executor == null)
+                    {
+                        <td></td>
+                        <td></td>
+                    }
+                    else
+                    {
+                        <td>@order.Executor.FirstName</td>
+                        <td>@order.Executor.Position</td>
+                    }
+  
                     <td>@order.Project.ProjectName</td>
                     <td>@order.CreationDate</td>
                     <td>@order.ScheduledTime</td>
@@ -60,19 +70,26 @@ else
 
 @code {
 
-    public List<Order> OrdersList { get; set; }
+    public List<OrderModel> OrdersList { get; set; }
     
-    protected string info;
+    protected string Info;
 
     protected override async Task OnInitializedAsync()
     {
-
         var client = _clientFactory.CreateClient();
-        var result = await client.GetAsync("http://localhost:8443/fullOrder");
+        var result = await client.GetAsync("http://localhost:8443/Order/GetOrder");
 
-        info = await result.Content.ReadAsStringAsync();
-        OrdersList = JsonConvert.DeserializeObject<List<Order>>(info);
-        
+        Info = await result.Content.ReadAsStringAsync();
+        var deserialized = JsonConvert.DeserializeObject<List<OrderModel>>(Info);
+        if(deserialized != null)
+            foreach (var des in deserialized.Where(des => des.Executor == null))
+            {
+                des.Executor = new ExecutorModel
+                {
+                    FirstName = string.Empty,
+                    Position = 0
+                };
+            }
+        OrdersList = JsonConvert.DeserializeObject<List<OrderModel>>(Info);
     }
-
 }

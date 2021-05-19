@@ -9,7 +9,7 @@ namespace DigitalAgency.Dal.Context
     {
         public DbSet<Client> Clients { get; set; }
         public DbSet<Project> Projects { get; set; }
-        public DbSet<Task> Tasks { get; set; }
+        public DbSet<Card> Tasks { get; set; }
         public DbSet<Order> Orders { get; set; }
         public DbSet<Executor> Executors { get; set; }
 
@@ -24,18 +24,6 @@ namespace DigitalAgency.Dal.Context
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
-            modelBuilder.Entity<OrderTask>().HasKey(sc => new {AutoPartId = sc.TaskId, ServiceOrderId = sc.OrderId});
-
-            modelBuilder.Entity<OrderTask>()
-                .HasOne(sc => sc.Task)
-                .WithMany(s => s.OrderTasks)
-                .HasForeignKey(sc => sc.TaskId);
-
-
-            modelBuilder.Entity<OrderTask>()
-                .HasOne(sc => sc.Order)
-                .WithMany(s => s.OrderParts)
-                .HasForeignKey(sc => sc.OrderId);
         }
     }
 }

@@ -1,8 +1,10 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using DigitalAgency.Bll.Services.Bot;
 using DigitalAgency.Bll.Services.Bot.Interfaces;
 using DigitalAgency.Bll.Services.Interfaces;
+using DigitalAgency.Dal.Storages.Interfaces;
 using Telegram.Bot;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
@@ -12,85 +14,75 @@ namespace DigitalAgency.Bll.Services
     public class BotService : IBotService
     {
         private readonly ITelegramBotClient _telegram;
-        private readonly IClientService _clientService;
-        private readonly IProcessCallbacks _processCallbacks;
-        private readonly IProcessReply _processReply;
-        private readonly IExecutorService _executorService;
+        private readonly IClientStorage _clientStorage;
+        private readonly IExecutorStorage _executorStorage;
+        private readonly IRegistrationService _registrationService;
 
 
         public BotService(
             ITelegramBotClient telegram,
-            IClientService clientService,
-            IProcessCallbacks processCallbacks, 
-            IProcessReply processReply, 
-            IExecutorService executorService)
+            IClientStorage clientStorage,
+            IExecutorStorage executorStorage, 
+            IRegistrationService registrationService)
         {
             _telegram = telegram;
-            _clientService = clientService;
-            _processCallbacks = processCallbacks;
-            _processReply = processReply;
-            _executorService = executorService;
+            _clientStorage = clientStorage;
+            _executorStorage = executorStorage;
+            _registrationService = registrationService;
         }
         public async Task ProcessMessageAsync(Update update)
         {
             if (update.Type is UpdateType.Unknown)
                 return;
             var thisUser =
-                await _clientService.GetClientAsync(client => client.TelegramId == update.CallbackQuery.From.Id);
+                await _clientStorage.GetClientAsync(client => client.TelegramId == update.Message.From.Id);
             var thisExecutor =
-                await _executorService.GetExecutorAsync(client => client.TelegramId == update.CallbackQuery.From.Id);
-            
+                await _executorStorage.GetExecutorAsync(client => client.TelegramId == update.Message.From.Id);
+            // todo; To explicit method callback execution
             if (update.CallbackQuery is not null)
             {
                 if (thisUser != null)
                 {
-                    if (update.CallbackQuery.Message.Text.ToLower().Contains("order") 
-                        && !update.CallbackQuery.Message.Text.ToLower().Contains("orders"))
-                    {
-                        await _processCallbacks.ProcessCreateOrderCallback(update);
-                    }
-                    else
-                    {
-                        await _processCallbacks.ProcessCallback(update);
-                    }
-                    return;
-                } 
+                    
+                }
+
                 if (thisExecutor != null)
                 {
                     
                 }
+
+                throw new ArgumentOutOfRangeException($"No user or executor in callback! [LINE 63 BOTSERVICE]");
+            }
+
+            var receivedMessage = update.Message;
+            
+            if (receivedMessage == null)
+            {
+                throw new ArgumentNullException($"{nameof(receivedMessage)} is null! [if (receivedMessage == null) BOTSERVICE]");
+            }
+            
+            // todo: To explicit registration
+            if (thisExecutor == null || thisUser == null)
+            {
+                await _registrationService.StartRegistration(update);
+            }
+            // Todo: Process reply
+            if (receivedMessage.ReplyToMessage != null)
+            {
                 
             }
-            var receivedMessage = update.Message;
-            var sender = receivedMessage.From;
-            
-            var thisClient = await _clientService.GetClientAsync(client => client.TelegramId == sender.Id);
-            
-            if (receivedMessage.ReplyToMessage is not null && !string.IsNullOrEmpty(receivedMessage.Text))
+
+            if (thisExecutor != null && thisUser == null)
             {
-                await _processReply.ProcessClientReplies(receivedMessage,thisClient, update);
-                return;
+                
             }
-            if (receivedMessage.Type == MessageType.Contact && receivedMessage.Contact != null && thisClient == null)
+            if (thisExecutor == null && thisUser != null)
             {
-                await _telegram.SendTextMessageAsync(
-                    receivedMessage.Chat.Id, $"Thank you, {sender.FirstName}!\n" + 
-                                             $"Your phone number is {receivedMessage.Contact.PhoneNumber}");
-                if (await _clientService.CreateNewClient(receivedMessage))
-                {
-                    await EditClient(receivedMessage.Chat.Id);
-                }
-            }
-            if (thisClient != null && (string.IsNullOrEmpty(receivedMessage.Text) || receivedMessage.Text.Equals("/start")))
-            {
-                await _telegram.SendTextMessageAsync(receivedMessage.Chat.Id, $"Welcome back,{thisClient.FirstName}!");
-                receivedMessage.Text = "back";
+                
             }
         }
-        private async Task EditClient(long chatId)
-        { 
-            var keyboard = KeyboardMessages.DefaultKeyboardMessage(new List<string> {"Yes", "No"});
-            await _telegram.SendTextMessageAsync(chatId, "Are you an executor?", replyMarkup: keyboard);
-        }
+
+        
+        
     }
 }

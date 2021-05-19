@@ -1,13 +1,12 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
-using DigitalAgency.Bll.DTOs;
+using AutoMapper;
+using DigitalAgency.Bll.Models;
+using DigitalAgency.Bll.Models.Enums;
 using DigitalAgency.Bll.Services.Interfaces;
-using DigitalAgency.Dal.Context;
 using DigitalAgency.Dal.Entities;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Logging;
+using DigitalAgency.Dal.Storages.Interfaces;
 using Task = System.Threading.Tasks.Task;
 
 
@@ -15,145 +14,66 @@ namespace DigitalAgency.Bll.Services
 {
     public class OrderService : IOrderService
     {
-        private readonly ServicingContext _context;
-        private readonly ILogger<Order> _logger;
-        public OrderService(ServicingContext context, ILogger<Order> logger)
-        {
-            _context = context;
-            _logger = logger;
+        private IOrderStorage _orderStorage;
+        private IMapper _mapper;
 
-        }
-        public async Task CreateOrderAsync(Order order)
+        public OrderService(
+            IOrderStorage orderStorage, 
+            IMapper mapper)
         {
-            await _context.Orders.AddAsync(order);
-            await _context.SaveChangesAsync();
-        }
-        public async Task<List<int>> GetBusyTimeByDay(DateTime date)
-        {
-            _logger.LogInformation("Entered the GetBusyTimeByDay method with " + date);
-
-            var todayOrders = await _context.Orders.Where(c => c.ScheduledTime.Day == date.Day ).ToListAsync();
-            List<int> busyHour = new List<int>();
-            for (int i = 0; i < todayOrders.Count(); i++)
-                busyHour.Add(todayOrders[i].ScheduledTime.Hour);
-            return busyHour;
-        }
-        public async Task<List<Order>> GetOrdersAsync()
-        {
-            var result = await _context.Orders
-                .ToListAsync();
-            return result;
+            _orderStorage = orderStorage;
+            _mapper = mapper;
         }
 
-        public async Task<List<Order>> GetFullOrdersAsync()
+        public Task<bool> ChangeOrderState(int id, string state)
         {
-            return await _context.Orders.Include(x=>x.Project)
-                .Include(x=> x.Executor)
-                .Include(x=> x.Client)
-                .ToListAsync();
+            throw new System.NotImplementedException();
         }
 
-        public async Task<Order> GetLastAdded(int clientId)
+        public async Task<List<OrderModel>> GetOrdersAsync()
         {
-            return await _context.Orders.OrderBy(x=> x.Id).Where(x => x.ClientId == clientId).LastOrDefaultAsync();
+            var thisOrders = await _orderStorage.GetOrdersAsync();
+            return _mapper.Map<List<OrderModel>>(thisOrders);
         }
 
-        public async Task UpdateAsync(Order order)
+        public async Task CreateOrderAsync(OrderModel order)
         {
-            _context.Orders.Update(order);
-            await _context.SaveChangesAsync();
-        }
+            if (order.Client == null || order.Project == null)
+                return;
+            order.StateEnum = OrderStateEnum.New;
+            order.CreationDate = DateTime.UtcNow;
 
-        public async Task<List<Order>> GetClientOrdersAsync(Client thisClient)
-        {
-            return await _context.Orders.Where(x => x.ClientId == thisClient.Id)
-                .Include(x=> x.Project).ToListAsync();
-        }
-
-        public async Task<List<Order>> GetExecutorOrdersAsync(int mechanicId)
-        {
-            return await _context.Orders.Where(x => x.ExecutorId == mechanicId).Include(x=> x.Project).ToListAsync();
-        }
-
-        public async Task<Order> GetOrderByIdAsync(int id)
-        {
-            return await _context.Orders.Where(x=> x.Id == id).Include(x=> x.Project).FirstOrDefaultAsync();
-        }
-        public Order ScheduleOrder(OrderDTO orderDto)
-        {
-            var client = _context.Clients.FirstOrDefault(c => c.FirstName == orderDto.FirstName && c.MiddleName == orderDto.MiddleName && c.LastName == orderDto.LastName);
-            if (client == null)
+            var mapped = _mapper.Map<Order>(order);
+            if (order.Executor != null)
             {
-                client = new Client
-                {
-                    FirstName = orderDto.FirstName,
-                    MiddleName = orderDto.MiddleName,
-                    LastName = orderDto.LastName,
-                    PhoneNumber = orderDto.ClientPhone
-                };
-                _context.Clients.Add(client);
-
+                mapped.ExecutorId = order.Executor.Id;
+            }
+            else
+            {
+                mapped.Executor = null;
             }
 
-            var car = _context.Projects.
-                Where((c => c.ProjectName == orderDto.CarMake && c.ProjectDescription == orderDto.CarModel && c.ProjectLink == orderDto.CarColor)).FirstOrDefault();
-            if (car == null)
-            {
-                car = new Project
-                {
-                    ProjectName = orderDto.CarMake,
-                    ProjectDescription = orderDto.CarModel,
-                    ProjectLink = orderDto.CarColor,
-
-                };
-                _context.Projects.Add(car);
-
-            }
-
-            var serviceOrder = _context.Add(new Order
-            {
-                Client = client,
-                Project = car,
-                ScheduledTime = orderDto.ScheduledDate,
-                CreationDate = DateTime.UtcNow
-
-            });
-
-            _context.SaveChanges();
-            return serviceOrder.Entity;
-
-        }
-        public bool ChangeOrderState(int id, string state)
-        {
-            if (id < 0 || string.IsNullOrEmpty(state))
-                return false;
-
-            var order = _context.Orders.FirstOrDefault(c => c.Id == id);
-            if (order == null)
-                return false;
-
-            order.State = state;
-            _context.SaveChanges();
-            return true;
-        }
-        public async Task DeleteOrderAsync(int id)
-        {
-            var thisService = await _context.Orders.FirstOrDefaultAsync(x => x.Id == id);
-            _context.Remove(thisService);
-            await _context.SaveChangesAsync();
+            await _orderStorage.CreateOrderAsync(mapped);
         }
         
-        public bool DeleteOrder(int id)
+        public async Task<bool> UpdateAsync(OrderModel order)
         {
-            if (id < 0)
+            var thisOrder = await _orderStorage.GetOrder(x => x.Id == order.Id);
+            if (thisOrder == null)
                 return false;
+            var mappedOrder = _mapper.Map<Order>(order);
 
-            var order = _context.Orders.FirstOrDefault(c => c.Id == id);
-            if (order == null)
-                return false;
+            thisOrder.ExecutorId = mappedOrder.ExecutorId ?? thisOrder.Executor.Id;
+            thisOrder.ScheduledTime = mappedOrder.ScheduledTime;
+            
+            await _orderStorage.UpdateAsync(thisOrder);
+            return true;
+        }
 
-            _context.Remove(order);
-            _context.SaveChanges();
+        public async Task<bool> DeleteOrder(int id)
+        {
+            if (await _orderStorage.GetOrder(order => order.Id == id) == null) return false;
+            await _orderStorage.DeleteOrderAsync(id);
             return true;
         }
     }

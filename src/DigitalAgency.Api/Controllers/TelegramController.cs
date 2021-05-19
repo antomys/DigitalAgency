@@ -26,7 +26,6 @@ namespace DigitalAgency.Api.Controllers
             try
             {
                 await _botService.ProcessMessageAsync(update);
-
                 return Ok();
             }
             catch (Exception exception)

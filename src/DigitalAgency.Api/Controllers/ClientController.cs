@@ -2,6 +2,8 @@
 using System.Linq;
 using System.Text.Json;
 using System.Threading.Tasks;
+using DigitalAgency.Api.Validate;
+using DigitalAgency.Bll.Models;
 using DigitalAgency.Bll.Services.Interfaces;
 using DigitalAgency.Dal.Entities;
 using FluentValidation;
@@ -10,23 +12,24 @@ using Microsoft.Extensions.Logging;
 
 namespace DigitalAgency.Api.Controllers
 {
-    [Route("[controller]")]
+    [Route("[controller]/[action]")]
     [ApiController]
     public class ClientController : ControllerBase
     {
         private readonly IClientService _clientService;
-        private readonly IExecutorService _executorService;
-        private readonly IValidator<DigitalAgency.Dal.Entities.Client> _clientValidator;
         private readonly ILogger<ClientController> _logger;
-        public ClientController(IClientService clientService, 
-            IValidator<DigitalAgency.Dal.Entities.Client> clientValidation, 
-            ILogger<ClientController> logger, 
-            IExecutorService executorService)
+        private readonly IValidator<ClientModel> _clientValidator;
+        private readonly IValidator<ExecutorModel> _executorValidator;
+
+        public ClientController(IClientService clientService,
+            ILogger<ClientController> logger,
+            IValidator<ClientModel> clientValidator, 
+            IValidator<ExecutorModel> executorValidator)
         {
             _clientService = clientService;
-            _clientValidator = clientValidation;
             _logger = logger;
-            _executorService = executorService;
+            _clientValidator = clientValidator;
+            _executorValidator = executorValidator;
         }
 
         [HttpGet]
@@ -38,38 +41,43 @@ namespace DigitalAgency.Api.Controllers
             return Ok(result);
         }
         
-        [HttpGet("executor")]
+        [HttpGet]
         public async Task<IActionResult> GetExecutor()
         {
             _logger.LogInformation("Star logging - method GetClientAsync controller ClientContoller");
-            var result = await _executorService.GetExecutorsAsync();
+            var result = await _clientService.GetExecutorsAsync();
             _logger.LogDebug("Time request {Time}", DateTime.UtcNow);
             return Ok(result);
         }
         
         [HttpPost]
-        public async Task<ActionResult<DigitalAgency.Dal.Entities.Client>> PostClient(DigitalAgency.Dal.Entities.Client client)
+        public async Task<ActionResult<ClientModel>> PostClient(ClientModel clientModel)
         {
             _logger.LogInformation("Star logging - method PostClient controller ClientContoller");
-            var result = _clientValidator.Validate(client);
+            var result = await _clientValidator.ValidateAsync(clientModel);
             if (!result.IsValid)
             {
                 return BadRequest(result.Errors.Select(x => new { Error = x.ErrorMessage, Code = x.ErrorCode }).ToList());
             }
-            await _clientService.CreateClientAsync(client);
+            await _clientService.CreateClientAsync(clientModel);
             _logger.LogDebug("Time request {Time}", DateTime.UtcNow);
-            return Ok(client);
+            return Ok(clientModel);
         }
-        [HttpPost("executor")]
-        public async Task<ActionResult<DigitalAgency.Dal.Entities.Client>> PostExecutor(Executor executor)
+        [HttpPost]
+        public async Task<ActionResult<ExecutorModel>> PostExecutor(ExecutorModel executor)
         {
             _logger.LogInformation("Star logging - method PostClient controller ClientContoller");
-            await _executorService.CreateExecutorAsync(executor);
+            var result = await _executorValidator.ValidateAsync(executor);
+            if (!result.IsValid)
+            {
+                return BadRequest(result.Errors.Select(x => new { Error = x.ErrorMessage, Code = x.ErrorCode }).ToList());
+            }
+            await _clientService.CreateExecutorAsync(executor);
             _logger.LogDebug("Time request {Time}", DateTime.UtcNow);
             return Ok(executor);
         }
 
-        [HttpDelete("{id}")]
+        [HttpDelete]
         public async Task<IActionResult> DeleteClient(int id)
         {
             _logger.LogInformation("Star logging - method DeleteClient controller ClientContoller");
@@ -78,20 +86,20 @@ namespace DigitalAgency.Api.Controllers
             return Ok(id);
         }
         
-        [HttpDelete("executor/{id}")]
+        [HttpDelete]
         public async Task<IActionResult> DeleteExecutor(int id)
         {
             _logger.LogInformation("Star logging - method DeleteClient controller ClientContoller");
-            await _executorService.DeleteExecutorAsync(id);
+            await _clientService.DeleteExecutorAsync(id);
             _logger.LogDebug("Time request {Time}", DateTime.UtcNow);
             return Ok(id);
         }
 
         [HttpPut]
-        public async Task<ActionResult<DigitalAgency.Dal.Entities.Client>> PutClient(DigitalAgency.Dal.Entities.Client client)
+        public async Task<ActionResult<ClientModel>> PutClient(ClientModel client)
         {
             _logger.LogInformation("Star logging - method PutClient controller ClientContoller " + JsonSerializer.Serialize(client));
-            var result = _clientValidator.Validate(client);
+            var result = await _clientValidator.ValidateAsync(client);
             if (!result.IsValid)
             {
                 return BadRequest(result.Errors.Select(x => new { Error = x.ErrorMessage, Code = x.ErrorCode }).ToList());
@@ -100,11 +108,11 @@ namespace DigitalAgency.Api.Controllers
             _logger.LogDebug("Time request {Time}", DateTime.UtcNow);
             return Ok(client);
         }
-        [HttpPut("executor")]
-        public async Task<ActionResult<DigitalAgency.Dal.Entities.Client>> PutExecutor(Executor executor)
+        [HttpPut]
+        public async Task<ActionResult<ExecutorModel>> PutExecutor(ExecutorModel executor)
         {
             _logger.LogInformation("Star logging - method PutClient controller ClientContoller " + JsonSerializer.Serialize(executor));
-            await _executorService.UpdateExecutorAsync(executor);
+            await _clientService.UpdateExecutorAsync(executor);
             _logger.LogDebug("Time request {Time}", DateTime.UtcNow);
             return Ok(executor);
         }

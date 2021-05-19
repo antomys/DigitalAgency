@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
-namespace AutoService.Dal.Migrations
+namespace DigitalAgency.Dal.Migrations
 {
     [DbContext(typeof(ServicingContext))]
     partial class ServicingContextModelSnapshot : ModelSnapshot
@@ -19,7 +19,33 @@ namespace AutoService.Dal.Migrations
                 .HasAnnotation("ProductVersion", "5.0.6")
                 .HasAnnotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn);
 
-            modelBuilder.Entity("AutoService.Infrastructure.Entities.Client", b =>
+            modelBuilder.Entity("DigitalAgency.Dal.Entities.Card", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasAnnotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn);
+
+                    b.Property<int>("DaysDeadline")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Name")
+                        .HasColumnType("text");
+
+                    b.Property<int>("OrderId")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("StateEnum")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("OrderId");
+
+                    b.ToTable("Cards");
+                });
+
+            modelBuilder.Entity("DigitalAgency.Dal.Entities.Client", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -49,7 +75,7 @@ namespace AutoService.Dal.Migrations
                     b.ToTable("Clients");
                 });
 
-            modelBuilder.Entity("AutoService.Infrastructure.Entities.Executor", b =>
+            modelBuilder.Entity("DigitalAgency.Dal.Entities.Executor", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -71,8 +97,8 @@ namespace AutoService.Dal.Migrations
                     b.Property<string>("PhoneNumber")
                         .HasColumnType("text");
 
-                    b.Property<string>("Position")
-                        .HasColumnType("text");
+                    b.Property<int>("Position")
+                        .HasColumnType("integer");
 
                     b.Property<long>("TelegramId")
                         .HasColumnType("bigint");
@@ -82,7 +108,7 @@ namespace AutoService.Dal.Migrations
                     b.ToTable("Executors");
                 });
 
-            modelBuilder.Entity("AutoService.Infrastructure.Entities.Order", b =>
+            modelBuilder.Entity("DigitalAgency.Dal.Entities.Order", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -92,20 +118,20 @@ namespace AutoService.Dal.Migrations
                     b.Property<int>("ClientId")
                         .HasColumnType("integer");
 
-                    b.Property<DateTime>("CreationDate")
-                        .HasColumnType("timestamp without time zone");
+                    b.Property<DateTimeOffset>("CreationDate")
+                        .HasColumnType("timestamp with time zone");
 
-                    b.Property<int>("ExecutorId")
+                    b.Property<int?>("ExecutorId")
                         .HasColumnType("integer");
 
                     b.Property<int>("ProjectId")
                         .HasColumnType("integer");
 
-                    b.Property<DateTime>("ScheduledTime")
-                        .HasColumnType("timestamp without time zone");
+                    b.Property<DateTimeOffset>("ScheduledTime")
+                        .HasColumnType("timestamp with time zone");
 
-                    b.Property<string>("State")
-                        .HasColumnType("text");
+                    b.Property<int>("StateEnum")
+                        .HasColumnType("integer");
 
                     b.HasKey("Id");
 
@@ -118,22 +144,7 @@ namespace AutoService.Dal.Migrations
                     b.ToTable("ServiceOrders");
                 });
 
-            modelBuilder.Entity("AutoService.Infrastructure.Entities.OrderTask", b =>
-                {
-                    b.Property<int>("TaskId")
-                        .HasColumnType("integer");
-
-                    b.Property<int>("OrderId")
-                        .HasColumnType("integer");
-
-                    b.HasKey("TaskId", "OrderId");
-
-                    b.HasIndex("OrderId");
-
-                    b.ToTable("OrderTask");
-                });
-
-            modelBuilder.Entity("AutoService.Infrastructure.Entities.Project", b =>
+            modelBuilder.Entity("DigitalAgency.Dal.Entities.Project", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -144,6 +155,9 @@ namespace AutoService.Dal.Migrations
                         .HasColumnType("integer");
 
                     b.Property<string>("ProjectDescription")
+                        .HasColumnType("text");
+
+                    b.Property<string>("ProjectFilePath")
                         .HasColumnType("text");
 
                     b.Property<string>("ProjectLink")
@@ -157,27 +171,6 @@ namespace AutoService.Dal.Migrations
                     b.HasIndex("OwnerId");
 
                     b.ToTable("Projects");
-                });
-
-            modelBuilder.Entity("AutoService.Infrastructure.Entities.Task", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer")
-                        .HasAnnotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn);
-
-                    b.Property<int>("DaysDeadline")
-                        .HasColumnType("integer");
-
-                    b.Property<string>("Name")
-                        .HasColumnType("text");
-
-                    b.Property<string>("State")
-                        .HasColumnType("text");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("Tasks");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole", b =>
@@ -374,22 +367,31 @@ namespace AutoService.Dal.Migrations
                     b.ToTable("AspNetUserTokens");
                 });
 
-            modelBuilder.Entity("AutoService.Infrastructure.Entities.Order", b =>
+            modelBuilder.Entity("DigitalAgency.Dal.Entities.Card", b =>
                 {
-                    b.HasOne("AutoService.Infrastructure.Entities.Client", "Client")
-                        .WithMany("ServiceOrders")
+                    b.HasOne("DigitalAgency.Dal.Entities.Order", "Order")
+                        .WithMany("Tasks")
+                        .HasForeignKey("OrderId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Order");
+                });
+
+            modelBuilder.Entity("DigitalAgency.Dal.Entities.Order", b =>
+                {
+                    b.HasOne("DigitalAgency.Dal.Entities.Client", "Client")
+                        .WithMany("Orders")
                         .HasForeignKey("ClientId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("AutoService.Infrastructure.Entities.Executor", "Executor")
-                        .WithMany("ServiceOrders")
-                        .HasForeignKey("ExecutorId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                    b.HasOne("DigitalAgency.Dal.Entities.Executor", "Executor")
+                        .WithMany("Orders")
+                        .HasForeignKey("ExecutorId");
 
-                    b.HasOne("AutoService.Infrastructure.Entities.Project", "Project")
-                        .WithMany("ServiceOrders")
+                    b.HasOne("DigitalAgency.Dal.Entities.Project", "Project")
+                        .WithMany("Orders")
                         .HasForeignKey("ProjectId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -401,28 +403,9 @@ namespace AutoService.Dal.Migrations
                     b.Navigation("Project");
                 });
 
-            modelBuilder.Entity("AutoService.Infrastructure.Entities.OrderTask", b =>
+            modelBuilder.Entity("DigitalAgency.Dal.Entities.Project", b =>
                 {
-                    b.HasOne("AutoService.Infrastructure.Entities.Order", "Order")
-                        .WithMany("OrderParts")
-                        .HasForeignKey("OrderId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("AutoService.Infrastructure.Entities.Task", "Task")
-                        .WithMany("OrderTasks")
-                        .HasForeignKey("TaskId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Order");
-
-                    b.Navigation("Task");
-                });
-
-            modelBuilder.Entity("AutoService.Infrastructure.Entities.Project", b =>
-                {
-                    b.HasOne("AutoService.Infrastructure.Entities.Client", "Client")
+                    b.HasOne("DigitalAgency.Dal.Entities.Client", "Client")
                         .WithMany("Projects")
                         .HasForeignKey("OwnerId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -482,31 +465,26 @@ namespace AutoService.Dal.Migrations
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("AutoService.Infrastructure.Entities.Client", b =>
+            modelBuilder.Entity("DigitalAgency.Dal.Entities.Client", b =>
                 {
+                    b.Navigation("Orders");
+
                     b.Navigation("Projects");
-
-                    b.Navigation("ServiceOrders");
                 });
 
-            modelBuilder.Entity("AutoService.Infrastructure.Entities.Executor", b =>
+            modelBuilder.Entity("DigitalAgency.Dal.Entities.Executor", b =>
                 {
-                    b.Navigation("ServiceOrders");
+                    b.Navigation("Orders");
                 });
 
-            modelBuilder.Entity("AutoService.Infrastructure.Entities.Order", b =>
+            modelBuilder.Entity("DigitalAgency.Dal.Entities.Order", b =>
                 {
-                    b.Navigation("OrderParts");
+                    b.Navigation("Tasks");
                 });
 
-            modelBuilder.Entity("AutoService.Infrastructure.Entities.Project", b =>
+            modelBuilder.Entity("DigitalAgency.Dal.Entities.Project", b =>
                 {
-                    b.Navigation("ServiceOrders");
-                });
-
-            modelBuilder.Entity("AutoService.Infrastructure.Entities.Task", b =>
-                {
-                    b.Navigation("OrderTasks");
+                    b.Navigation("Orders");
                 });
 #pragma warning restore 612, 618
         }
