@@ -1,4 +1,4 @@
-using DigitalAgency.Bll.Services.Bot.Interfaces;
+/*using DigitalAgency.Bll.Services.Bot.Interfaces;
 using DigitalAgency.Bll.Services.Interfaces;
 using DigitalAgency.Dal.Entities;
 using DigitalAgency.Dal.Storages.Interfaces;
@@ -39,31 +39,6 @@ namespace DigitalAgency.Bll.Services.Bot
                     await GetContactPhone(receivedMessage.Chat.Id); 
                     return; 
                 }
-                case "yes":
-                {
-                    await _clientStorage.DeleteClientAsync(thisClient.Id);
-                    await _executorStorage.CreateExecutorAsync(new Executor
-                    {
-                        FirstName = thisClient.FirstName,
-                        MiddleName = thisClient.MiddleName,
-                        LastName = thisClient.LastName,
-                        PhoneNumber = thisClient.PhoneNumber,
-                        TelegramId = thisClient.TelegramId,
-                        ChatId = thisClient.ChatId,
-                    });
-                    await _telegram.SendTextMessageAsync(receivedMessage.Chat.Id,
-                        $"One more step for your registration!");
-                    return;
-                }
-                case "no":
-                { 
-                    await _telegram.SendTextMessageAsync(receivedMessage.Chat.Id,
-                            $"You have successfully registered as Client!, " +
-                            $"{receivedMessage.From.FirstName}!",
-                            replyMarkup: KeyboardMessages.DefaultKeyboardMessage(_botConfiguration.CommandsClient));
-                    
-                    return;
-                }
                 case "back":
                 {
                     await _telegram.SendTextMessageAsync(receivedMessage.Chat.Id, "Please choose from menu");
@@ -77,17 +52,6 @@ namespace DigitalAgency.Bll.Services.Bot
                 }
             }
         }
-        private async Task GetContactPhone(long chatId)
-        {
-            var keyboard = new ReplyKeyboardMarkup(new[]
-            {
-                new[] {new KeyboardButton("Share your contact") {RequestContact = true}}
-            }, resizeKeyboard: true, oneTimeKeyboard: true);
-            
-            await _telegram.SendTextMessageAsync(chatId,
-                "Welcome to our bot!\n" +
-                "Before you can start use ours bot, you need to setup your account\n\n" +
-                "First, enter your phone number", replyMarkup: keyboard);
-        }
+        
     }
-}
+}*/

@@ -1,4 +1,4 @@
-﻿/*
+﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using DigitalAgency.Bll.Services.Bot;
@@ -15,85 +15,74 @@ namespace DigitalAgency.Bll.Services
     {
         private readonly ITelegramBotClient _telegram;
         private readonly IClientStorage _clientStorage;
-        private readonly IProcessCallbacks _processCallbacks;
-        private readonly IProcessReply _processReply;
         private readonly IExecutorStorage _executorStorage;
+        private readonly IRegistrationService _registrationService;
 
 
         public BotService(
             ITelegramBotClient telegram,
             IClientStorage clientStorage,
-            IProcessCallbacks processCallbacks, 
-            IProcessReply processReply, 
-            IExecutorStorage executorStorage)
+            IExecutorStorage executorStorage, 
+            IRegistrationService registrationService)
         {
             _telegram = telegram;
             _clientStorage = clientStorage;
-            _processCallbacks = processCallbacks;
-            _processReply = processReply;
             _executorStorage = executorStorage;
+            _registrationService = registrationService;
         }
         public async Task ProcessMessageAsync(Update update)
         {
             if (update.Type is UpdateType.Unknown)
                 return;
             var thisUser =
-                await _clientStorage.GetClientAsync(client => client.TelegramId == update.CallbackQuery.From.Id);
+                await _clientStorage.GetClientAsync(client => client.TelegramId == update.Message.From.Id);
             var thisExecutor =
-                await _executorStorage.GetExecutorAsync(client => client.TelegramId == update.CallbackQuery.From.Id);
-            
+                await _executorStorage.GetExecutorAsync(client => client.TelegramId == update.Message.From.Id);
+            // todo; To explicit method callback execution
             if (update.CallbackQuery is not null)
             {
                 if (thisUser != null)
                 {
-                    if (update.CallbackQuery.Message.Text.ToLower().Contains("order") 
-                        && !update.CallbackQuery.Message.Text.ToLower().Contains("orders"))
-                    {
-                        await _processCallbacks.ProcessCreateOrderCallback(update);
-                    }
-                    else
-                    {
-                        await _processCallbacks.ProcessCallback(update);
-                    }
-                    return;
-                } 
+                    
+                }
+
                 if (thisExecutor != null)
                 {
                     
                 }
+
+                throw new ArgumentOutOfRangeException($"No user or executor in callback! [LINE 63 BOTSERVICE]");
+            }
+
+            var receivedMessage = update.Message;
+            
+            if (receivedMessage == null)
+            {
+                throw new ArgumentNullException($"{nameof(receivedMessage)} is null! [if (receivedMessage == null) BOTSERVICE]");
+            }
+            
+            // todo: To explicit registration
+            if (thisExecutor == null || thisUser == null)
+            {
+                await _registrationService.StartRegistration(update);
+            }
+            // Todo: Process reply
+            if (receivedMessage.ReplyToMessage != null)
+            {
                 
             }
-            var receivedMessage = update.Message;
-            var sender = receivedMessage.From;
-            
-            var thisClient = await _clientStorage.GetClientAsync(client => client.TelegramId == sender.Id);
-            
-            if (receivedMessage.ReplyToMessage is not null && !string.IsNullOrEmpty(receivedMessage.Text))
+
+            if (thisExecutor != null && thisUser == null)
             {
-                await _processReply.ProcessClientReplies(receivedMessage,thisClient, update);
-                return;
+                
             }
-            if (receivedMessage.Type == MessageType.Contact && receivedMessage.Contact != null && thisClient == null)
+            if (thisExecutor == null && thisUser != null)
             {
-                await _telegram.SendTextMessageAsync(
-                    receivedMessage.Chat.Id, $"Thank you, {sender.FirstName}!\n" + 
-                                             $"Your phone number is {receivedMessage.Contact.PhoneNumber}");
-                if (await _clientStorage.CreateNewClient(receivedMessage))
-                {
-                    await EditClient(receivedMessage.Chat.Id);
-                }
-            }
-            if (thisClient != null && (string.IsNullOrEmpty(receivedMessage.Text) || receivedMessage.Text.Equals("/start")))
-            {
-                await _telegram.SendTextMessageAsync(receivedMessage.Chat.Id, $"Welcome back,{thisClient.FirstName}!");
-                receivedMessage.Text = "back";
+                
             }
         }
-        private async Task EditClient(long chatId)
-        { 
-            var keyboard = KeyboardMessages.DefaultKeyboardMessage(new List<string> {"Yes", "No"});
-            await _telegram.SendTextMessageAsync(chatId, "Are you an executor?", replyMarkup: keyboard);
-        }
+
+        
+        
     }
 }
-*/

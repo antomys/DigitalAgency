@@ -10,7 +10,6 @@ namespace DigitalAgency.Dal.Storages.Interfaces
     public interface IClientStorage
     {
         Task CreateClientAsync(Client newClient);
-
         Task<List<Client>> GetClientsAsync();
         Task<Client> GetClientAsync(Expression<Func<Client, bool>> expression);
         Task DeleteClientAsync(int id);
