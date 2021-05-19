@@ -50,7 +50,7 @@ namespace DigitalAgency.Bll.Services.Bot
                     if (await CreateBotClient(receivedMessage))
                     {
                         await _telegram.SendTextMessageAsync(receivedMessage.Chat, "Successfully Signed up!");
-                        //todo: not return but redirect to executor menu
+                        //todo: not return but redirect to client menu
                         return;
                     }
                     await _telegram.SendTextMessageAsync(receivedMessage.Chat, "Something went wrong. Try again!");
@@ -62,11 +62,11 @@ namespace DigitalAgency.Bll.Services.Bot
                     if (await CreateBotExecutor(receivedMessage))
                     {
                         await _telegram.SendTextMessageAsync(receivedMessage.Chat, $"Successfully Signed up!");
-                        
+                        //todo: not return but redirect to executor menu
                         return;
                     }
                     await _telegram.SendTextMessageAsync(receivedMessage.Chat, $"Something went wrong. Try again!");
-                    await GetContactPhone(receivedMessage.Chat);
+                    await WelcomeMessage(receivedMessage);
                     return;
                 }
                 default:
@@ -108,16 +108,11 @@ namespace DigitalAgency.Bll.Services.Bot
         }
         private async Task<bool> CreateBotClient(Message message)
         {
-            // todo: to extended registration:
             var contactDetails = message.From;
-            
             var thisContact = await _clientStorage.GetClientAsync(x => x.TelegramId == contactDetails.Id);
             
-            if (thisContact == null)
-            {
-                return false;
-            }
-
+            if (thisContact == null) { return false; }
+            
             var contact = new Client
             {
                 FirstName = contactDetails.FirstName,
@@ -133,11 +128,9 @@ namespace DigitalAgency.Bll.Services.Bot
         private async Task<bool> CreateBotExecutor(Message message)
         {
             var contactDetails = message.From;
-            
             var clientToExecutor = await _clientStorage.GetClientAsync(x => x.TelegramId == contactDetails.Id);
             
-            if (clientToExecutor == null)
-                return false;
+            if (clientToExecutor == null) return false;
 
             var executor = new Executor
             {

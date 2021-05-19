@@ -20,7 +20,8 @@ namespace DigitalAgency.Bll.Services.Bot
         }
         public static InlineKeyboardMarkup DefaultInlineKeyboardMessage(ConcurrentDictionary<string,string> commands)
         {
-            var keyboardButtons = commands.Select((command) => new[] {InlineKeyboardButton.WithCallbackData(command.Key,command.Value.ToString())})
+            var keyboardButtons = commands
+                .Select((command) => new[] {InlineKeyboardButton.WithCallbackData(command.Key,command.Value.ToString())})
                 .Cast<IEnumerable<InlineKeyboardButton>>().AsEnumerable();
             
             return new InlineKeyboardMarkup(keyboardButtons); 

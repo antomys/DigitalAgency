@@ -1,4 +1,6 @@
 using System;
+using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using DigitalAgency.Bll.Services.Bot.Interfaces;
@@ -29,21 +31,37 @@ namespace DigitalAgency.Bll.Services.Bot
             }
         }
 
+        //todo: implement
+        public async Task ProcessCallBack(Executor executor, Update update)
+        {
+            throw new NotImplementedException();
+        }
+        
+        public async Task ProcessReply(Executor executor, Update update)
+        {
+            throw new NotImplementedException();
+        }
+
         private async Task EditPositionMenu(Executor executor, Update update)
         {
-            var receivedMessage = update.Message;
-
-            if (!Enum.IsDefined(typeof(PositionsEnum), receivedMessage.Text))
+            if (update.Message.Text == null)
             {
-                await _telegram.SendTextMessageAsync(receivedMessage.Chat, "Wrong input. Try again!");
+                await _telegram.SendTextMessageAsync(update.Message.Chat, "Wrong input!");
                 return;
+            }
+            
+            if (!Enum.TryParse<PositionsEnum>(update.Message.Text, out var parsedPosition))
+            {
+                var keys = Enum.GetNames(typeof(PositionsEnum)).ToList();
+            
+                var keyboard = KeyboardMessages.DefaultKeyboardMessage(keys);
+
+                await _telegram.SendTextMessageAsync(update.Message.Chat, "Please choose your position",
+                    replyMarkup: keyboard);
             }
             else
             {
-                executor.Position = PositionsEnum.Copywriter;
-                await _executorStorage.UpdateExecutorAsync(executor);
-                await _telegram.SendTextMessageAsync(receivedMessage.Chat, $"Success! Your position\nis{executor.Position}");
-                return;
+                await EditExecutorPosition(update.Message);
             }
         }
         
@@ -54,6 +72,7 @@ namespace DigitalAgency.Bll.Services.Bot
             if (!Enum.TryParse<PositionsEnum>(message.Text, out var parsedPosition)) return false;
             thisExecutor.Position = parsedPosition;
             await _executorStorage.UpdateExecutorAsync(thisExecutor);
+            await _telegram.SendTextMessageAsync(message.Chat, $"Success! Your position is {parsedPosition}");
             return true;
 
         }
