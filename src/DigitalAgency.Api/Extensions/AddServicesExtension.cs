@@ -1,14 +1,13 @@
 using System;
 using DigitalAgency.Api.Validate;
-using DigitalAgency.Bll;
 using DigitalAgency.Bll.Models;
 using DigitalAgency.Bll.Services;
-using DigitalAgency.Bll.Services.Bot;
-using DigitalAgency.Bll.Services.Bot.Interfaces;
 using DigitalAgency.Bll.Services.Interfaces;
+using DigitalAgency.Bll.TelegramBot;
+using DigitalAgency.Bll.TelegramBot.Services;
+using DigitalAgency.Bll.TelegramBot.Services.Interfaces;
 using DigitalAgency.Dal.Context;
 using FluentValidation;
-using Microsoft.EntityFrameworkCore.Internal;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;

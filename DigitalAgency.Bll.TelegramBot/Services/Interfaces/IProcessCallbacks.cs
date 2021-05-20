@@ -1,7 +1,7 @@
 using System.Threading.Tasks;
 using Telegram.Bot.Types;
 
-namespace DigitalAgency.Bll.Services.Bot.Interfaces
+namespace DigitalAgency.Bll.TelegramBot.Services.Interfaces
 {
     public interface IProcessCallbacks
     {

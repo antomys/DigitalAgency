@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using DigitalAgency.Dal.Entities;
 using Task = System.Threading.Tasks.Task;
 
-namespace DigitalAgency.Bll.Services.Bot.Interfaces
+namespace DigitalAgency.Bll.TelegramBot.Services.Interfaces
 {
     public interface IButtons
     {

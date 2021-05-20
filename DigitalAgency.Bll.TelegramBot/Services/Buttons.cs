@@ -1,12 +1,12 @@
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using DigitalAgency.Bll.Services.Bot.Interfaces;
+using DigitalAgency.Bll.TelegramBot.Services.Interfaces;
 using DigitalAgency.Dal.Entities;
 using DigitalAgency.Dal.Storages.Interfaces;
 using Telegram.Bot;
 using Task = System.Threading.Tasks.Task;
 
-namespace DigitalAgency.Bll.Services.Bot
+namespace DigitalAgency.Bll.TelegramBot.Services
 {
     public class Buttons : IButtons
     {

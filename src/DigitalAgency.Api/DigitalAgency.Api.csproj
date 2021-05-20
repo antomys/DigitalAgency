@@ -31,6 +31,8 @@
 
   <ItemGroup>
   
+    <ProjectReference Include="..\..\DigitalAgency.Bll.TelegramBot\DigitalAgency.Bll.TelegramBot.csproj" />
+  
     <ProjectReference Include="..\DigitalAgency.Bll\DigitalAgency.Bll.csproj" />
     <DotNetPublishFiles Include="@(ProjectReference)">
       <DestinationRelativePath>wwwroot/includes/%(RecursiveDir)%(Filename)%(Extension)</DestinationRelativePath>

@@ -26,28 +26,6 @@ namespace DigitalAgency.Bll.Services
             _mapper = mapper;
             _executorStorage = executorStorage;
         }
-        public async Task<bool> CreateNewClient(Telegram.Bot.Types.Message receivedMessage)
-        {
-            var sender = receivedMessage.From;
-            
-            var phoneNumber = receivedMessage.Contact.PhoneNumber;
-            if (!phoneNumber.Contains('+'))
-                phoneNumber = '+' + phoneNumber;
-            
-            if (await _clientStorage.GetClientAsync(x => x.TelegramId == sender.Id) != null) return false;
-            
-            var newClient = new Client 
-            {
-                FirstName = sender.FirstName, 
-                MiddleName = '@'+sender.Username, 
-                LastName = sender.LastName, 
-                PhoneNumber = phoneNumber, 
-                TelegramId = sender.Id,
-                ChatId = receivedMessage.Chat.Id,
-            };
-            await _clientStorage.CreateClientAsync(newClient);
-            return true;
-        }
         public async Task<List<ClientModel>> GetClientsAsync()
         {
             return _mapper.Map<List<ClientModel>>(await _clientStorage.GetClientsAsync());

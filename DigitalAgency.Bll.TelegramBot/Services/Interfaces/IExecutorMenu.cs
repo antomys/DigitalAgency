@@ -2,7 +2,7 @@ using System.Threading.Tasks;
 using DigitalAgency.Dal.Entities;
 using Telegram.Bot.Types;
 
-namespace DigitalAgency.Bll.Services.Bot.Interfaces
+namespace DigitalAgency.Bll.TelegramBot.Services.Interfaces
 {
     public interface IExecutorMenu
     {

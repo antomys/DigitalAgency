@@ -1,13 +1,12 @@
 ﻿using System;
 using System.Threading.Tasks;
-using DigitalAgency.Bll.Services.Bot.Interfaces;
-using DigitalAgency.Bll.Services.Interfaces;
+using DigitalAgency.Bll.TelegramBot.Services.Interfaces;
 using DigitalAgency.Dal.Entities;
 using DigitalAgency.Dal.Storages.Interfaces;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
 
-namespace DigitalAgency.Bll.Services
+namespace DigitalAgency.Bll.TelegramBot.Services
 {
     public class BotService : IBotService
     {
@@ -16,6 +15,7 @@ namespace DigitalAgency.Bll.Services
         private readonly IExecutorMenu _executorMenu;
         private readonly IClientMenu _clientMenu;
         private readonly IRegistrationService _registrationService;
+        private bool _isSuccessSingUp;
 
 
         public BotService(
@@ -32,7 +32,7 @@ namespace DigitalAgency.Bll.Services
             _registrationService = registrationService;
         }
         public async Task ProcessMessageAsync(Update update)
-        {
+        { 
             if (update.Type is UpdateType.Unknown)
                 return;
             var thisClient =
@@ -55,16 +55,23 @@ namespace DigitalAgency.Bll.Services
                 }
                 else
                 {
-                    await _registrationService.StartRegistration(update);
+                    _isSuccessSingUp = await _registrationService.StartRegistration(update);
                 }
             }
             else
             {
                 await MenuSelector(thisClient, thisExecutor, update);
             }
-
+            
+            // Just to ensure we always will get into this menu selector
+            if(_isSuccessSingUp)
+            {
+                thisClient = await _clientStorage.GetClientAsync(x => x.TelegramId == update.Message.From.Id);
+                thisExecutor = await _executorStorage.GetExecutorAsync(x => x.TelegramId == update.Message.From.Id);
+                await MenuSelector(thisClient, thisExecutor, update);
+            }
+            
         }
-
         private async Task MenuSelector(Client thisClient, Executor thisExecutor, Update update)
         {
             if (thisExecutor != null && thisClient == null)

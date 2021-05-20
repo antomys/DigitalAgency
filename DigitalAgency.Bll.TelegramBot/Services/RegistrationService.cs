@@ -1,15 +1,14 @@
 using System;
 using System.Threading.Tasks;
-using DigitalAgency.Bll.Services.Bot.Interfaces;
+using DigitalAgency.Bll.TelegramBot.Services.Interfaces;
 using DigitalAgency.Dal.Entities;
 using DigitalAgency.Dal.Entities.Enums;
 using DigitalAgency.Dal.Storages.Interfaces;
 using Telegram.Bot;
 using Telegram.Bot.Types;
-using Telegram.Bot.Types.Enums;
 using Telegram.Bot.Types.ReplyMarkups;
 
-namespace DigitalAgency.Bll.Services.Bot
+namespace DigitalAgency.Bll.TelegramBot.Services
 {
     public class RegistrationService : IRegistrationService
     {
@@ -27,20 +26,20 @@ namespace DigitalAgency.Bll.Services.Bot
             _telegram = telegram;
         }
         
-        public async Task StartRegistration(Update update)
+        public async Task<bool> StartRegistration(Update update)
         {
             var receivedMessage = update.Message;
             
             if (update.Message.Contact != null)
             {
                 await WelcomeMessage(update.Message);
-                return;
+                return false;
             }
             if(update.Message.Contact == null && receivedMessage == null 
                || !receivedMessage.Text.Contains("register",StringComparison.OrdinalIgnoreCase))
             {
                 await GetContactPhone(update.Message.Chat);
-                return;
+                return false;
             }
                 
             switch (receivedMessage.Text.ToLower())
@@ -50,30 +49,30 @@ namespace DigitalAgency.Bll.Services.Bot
                     if (await CreateBotClient(receivedMessage))
                     {
                         await _telegram.SendTextMessageAsync(receivedMessage.Chat, "Successfully Signed up!");
-                        //todo: not return but redirect to client menu
-                        return;
+                        return true;
                     }
                     await _telegram.SendTextMessageAsync(receivedMessage.Chat, "Something went wrong. Try again!");
                     await WelcomeMessage(receivedMessage);
-                    return;
+                    return false;
                 }
                 case "register as executor":
                 {
                     if (await CreateBotExecutor(receivedMessage))
                     {
                         await _telegram.SendTextMessageAsync(receivedMessage.Chat, $"Successfully Signed up!");
+                        
                         //todo: not return but redirect to executor menu
-                        return;
+                        return true;
                     }
                     await _telegram.SendTextMessageAsync(receivedMessage.Chat, $"Something went wrong. Try again!");
                     await WelcomeMessage(receivedMessage);
-                    return;
+                    return false;
                 }
                 default:
                 {
                     await _telegram.SendTextMessageAsync(update.Message.Chat.Id,"Wrong command! Try again:)");
                     await WelcomeMessage(update.Message);
-                    return;
+                    return false;
                 }
             }
         }

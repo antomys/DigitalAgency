@@ -1,5 +1,4 @@
 using System;
-using DigitalAgency.Bll.Services.Interfaces;
 using DigitalAgency.Dal.Entities;
 using DigitalAgency.Dal.Storages.Interfaces;
 using Microsoft.Extensions.Options;
@@ -8,7 +7,7 @@ using Telegram.Bot.Types;
 using Telegram.Bot.Types.ReplyMarkups;
 using Task = System.Threading.Tasks.Task;
 
-namespace DigitalAgency.Bll.Services.Bot
+namespace DigitalAgency.Bll.TelegramBot.Services
 {
     public class ProcessReply
     {
@@ -63,7 +62,7 @@ namespace DigitalAgency.Bll.Services.Bot
                      await _projectStorage.UpdateProjectAsync(car);
         
                      await _telegram.SendTextMessageAsync(chatId, "Great! Your car has been added!",
-                         replyMarkup: KeyboardMessages.DefaultKeyboardMessage(_botConfiguration.CommandsClient));
+                         replyMarkup: KeyboardMessages.DefaultKeyboardMessage(_botConfiguration.ClientMenu));
                      break;
                  }
                  case "please enter scheduled time for order":
@@ -74,7 +73,7 @@ namespace DigitalAgency.Bll.Services.Bot
                      await _orderStorage.UpdateAsync(order);
                             
                      await _telegram.SendTextMessageAsync(chatId, "Great! Your order has been added!\nWait for operator confirmation",
-                         replyMarkup: KeyboardMessages.DefaultKeyboardMessage(_botConfiguration.CommandsClient));
+                         replyMarkup: KeyboardMessages.DefaultKeyboardMessage(_botConfiguration.ClientMenu));
                      return;
                  }
              }

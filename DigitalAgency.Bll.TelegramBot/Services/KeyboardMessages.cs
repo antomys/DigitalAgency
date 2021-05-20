@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Telegram.Bot.Types.ReplyMarkups;
 
-namespace DigitalAgency.Bll.Services.Bot
+namespace DigitalAgency.Bll.TelegramBot.Services
 {
     public static class KeyboardMessages
     {
