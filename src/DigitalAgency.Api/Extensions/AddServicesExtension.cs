@@ -27,12 +27,12 @@ namespace DigitalAgency.Api.Extensions
                 .AddTransient<IProjectService, ProjectService>()
                 .AddTransient<IOrderService, OrderService>()
                 
-                
+                .AddTransient<IButtons,Buttons>()
+                .AddTransient<IExecutorMenuHelper,ExecutorMenuHelper>()
                 .AddTransient<IRegistrationService,RegistrationService>()
                 .AddTransient<IBotService, BotService>()
                 .AddTransient<IExecutorMenu,ExecutorMenu>()
                 .AddTransient<IClientMenu,ClientMenu>()
-                .AddTransient<IButtons,Buttons>()
                 .AddSingleton<ITelegramBotClient, TelegramBotClient>(provider =>
                 {
                     var options = provider.GetRequiredService<IOptions<BotConfiguration>>();

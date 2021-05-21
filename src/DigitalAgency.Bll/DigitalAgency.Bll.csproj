@@ -37,8 +37,4 @@
     </DotNetPublishFiles>
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="Services\Bot" />
-  </ItemGroup>
-
 </Project>

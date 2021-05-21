@@ -32,45 +32,65 @@ namespace DigitalAgency.Bll.TelegramBot.Services
             _registrationService = registrationService;
         }
         public async Task ProcessMessageAsync(Update update)
-        { 
-            if (update.Type is UpdateType.Unknown)
-                return;
-            var thisClient =
-                await _clientStorage.GetClientAsync(client => client.TelegramId == update.Message.From.Id);
-            var thisExecutor =
-                await _executorStorage.GetExecutorAsync(client => client.TelegramId == update.Message.From.Id);
-            
-            var receivedMessage = update.Message;
-            
-            if (receivedMessage == null)
-                throw new ArgumentNullException($"{nameof(receivedMessage)} is null! [if (receivedMessage == null) BOTSERVICE]");
-
-            if (thisExecutor?.FirstName == null 
-                || thisClient?.FirstName == null) 
+        {
+            Client thisClient;
+            Executor thisExecutor;
+            switch (update.Type)
             {
-                if (thisClient != null && thisClient.ChatId != 0
-                    || thisExecutor != null && thisExecutor.ChatId != 0)
+                case UpdateType.Unknown:
+                    return;
+                case UpdateType.CallbackQuery:
                 {
+                    thisClient =
+                        await _clientStorage.GetClientAsync(client => client.TelegramId == update.CallbackQuery.From.Id);
+                    thisExecutor =
+                        await _executorStorage.GetExecutorAsync(client => client.TelegramId == update.CallbackQuery.From.Id);
                     await MenuSelector(thisClient, thisExecutor, update);
+                    break;
                 }
-                else
+                case UpdateType.Message:
                 {
-                    _isSuccessSingUp = await _registrationService.StartRegistration(update);
+                    thisClient = 
+                        await _clientStorage.GetClientAsync(client => client.TelegramId == update.Message.From.Id); 
+                    thisExecutor = 
+                        await _executorStorage.GetExecutorAsync(client => client.TelegramId == update.Message.From.Id);
+                    
+                    var receivedMessage = update.Message;
+            
+                    if (receivedMessage == null)
+                        throw new ArgumentNullException($"{nameof(receivedMessage)} is null! [if (receivedMessage == null) BOTSERVICE]");
+
+                    if (thisExecutor?.FirstName == null 
+                        || thisClient?.FirstName == null) 
+                    {
+                        if (thisClient != null && thisClient.ChatId != 0
+                            || thisExecutor != null && thisExecutor.ChatId != 0)
+                        {
+                            await MenuSelector(thisClient, thisExecutor, update);
+                        }
+                        else
+                        {
+                            _isSuccessSingUp = await _registrationService.StartRegistration(update);
+                        }
+                    }
+                    else
+                    {
+                        await MenuSelector(thisClient, thisExecutor, update);
+                    }
+            
+                    // Just to ensure we always will get into this menu selector
+                    if(_isSuccessSingUp)
+                    {
+                        thisClient = await _clientStorage.GetClientAsync(x => x.TelegramId == update.Message.From.Id);
+                        thisExecutor = await _executorStorage.GetExecutorAsync(x => x.TelegramId == update.Message.From.Id);
+                        await MenuSelector(thisClient, thisExecutor, update);
+                    }
+
+                    break;
                 }
+                default:
+                    throw new ArgumentOutOfRangeException();
             }
-            else
-            {
-                await MenuSelector(thisClient, thisExecutor, update);
-            }
-            
-            // Just to ensure we always will get into this menu selector
-            if(_isSuccessSingUp)
-            {
-                thisClient = await _clientStorage.GetClientAsync(x => x.TelegramId == update.Message.From.Id);
-                thisExecutor = await _executorStorage.GetExecutorAsync(x => x.TelegramId == update.Message.From.Id);
-                await MenuSelector(thisClient, thisExecutor, update);
-            }
-            
         }
         private async Task MenuSelector(Client thisClient, Executor thisExecutor, Update update)
         {

@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using System.Reflection;
 using DigitalAgency.Api.Common;
 using DigitalAgency.Api.Extensions;
-using DigitalAgency.Bll.AutoMapper;
+using DigitalAgency.Bll.Infrastructure.AutoMapper;
 using DigitalAgency.Dal.Context;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;

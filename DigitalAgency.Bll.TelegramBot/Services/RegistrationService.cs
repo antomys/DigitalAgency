@@ -111,17 +111,15 @@ namespace DigitalAgency.Bll.TelegramBot.Services
             var thisContact = await _clientStorage.GetClientAsync(x => x.TelegramId == contactDetails.Id);
             
             if (thisContact == null) { return false; }
+
+            thisContact.FirstName = contactDetails.FirstName;
+            thisContact.MiddleName = contactDetails.Username;
+            thisContact.LastName = contactDetails.LastName;
+            thisContact.PhoneNumber = thisContact.PhoneNumber;
+            thisContact.TelegramId = thisContact.TelegramId;
+            thisContact.ChatId = message.Chat.Id;
             
-            var contact = new Client
-            {
-                FirstName = contactDetails.FirstName,
-                MiddleName = contactDetails.Username,
-                LastName = contactDetails.LastName,
-                PhoneNumber = thisContact.PhoneNumber,
-                TelegramId = thisContact.TelegramId,
-                ChatId = message.Chat.Id,
-            };
-            await _clientStorage.UpdateClientAsync(contact);
+            await _clientStorage.UpdateClientAsync(thisContact);
             return true;
         }
         private async Task<bool> CreateBotExecutor(Message message)

@@ -2,7 +2,7 @@
 @using Newtonsoft.Json
 @using Task = System.Threading.Tasks.Task
 @using DigitalAgency.Bll.Models
-@using DigitalAgency.Bll.Models.Enums
+@using OrderStateEnum = DigitalAgency.Dal.Entities.Enums.OrderStateEnum
 @inject IHttpClientFactory _clientFactory;
 
 
@@ -28,6 +28,7 @@ else
                 <td>Project</td>
                 <td>Creation date </td>
                 <td>Scheduled time</td>
+                <td>State</td>
 
             </tr>
         </thead>
@@ -52,6 +53,7 @@ else
                     <td>@order.Project.ProjectName</td>
                     <td>@order.CreationDate</td>
                     <td>@order.ScheduledTime</td>
+                    <td>@Enum.Parse(typeof(OrderStateEnum),order.StateEnum.ToString())</td>
                     <td>
                         <a class="nav-link" href="editOrder/@order.Id">
                             <span class="oi oi-pencil" aria-hidden="true"></span>Edit
