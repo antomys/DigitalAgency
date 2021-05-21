@@ -24,7 +24,6 @@ namespace DigitalAgency.Dal.Entities
         public DateTimeOffset CreationDate { get; set; }
         public DateTimeOffset ScheduledTime { get; set; }
         public OrderStateEnum StateEnum { get; set; }
-        
         public virtual ICollection<Card> Tasks { get; set; }
         
     }

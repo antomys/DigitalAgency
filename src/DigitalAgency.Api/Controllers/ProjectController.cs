@@ -45,8 +45,8 @@ namespace DigitalAgency.Api.Controllers
                 return BadRequest(result.Errors.Select(x => new { Error = x.ErrorMessage, Code = x.ErrorCode }).ToList());
             }
             _logger.LogDebug("Time request {Time}", DateTime.UtcNow);
-            if(await _projectService.CreateProjectAsync(project))
-             return Ok(project);
+            if(await _projectService.CreateProjectAsync(project)) 
+                return Ok(project);
             return BadRequest();
         }
 

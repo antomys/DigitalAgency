@@ -54,11 +54,11 @@ else
 }
 
 @code {
-    protected List<Client> Clients { get; set; }
-    protected string ProjectName { get; set; }
-    protected string ProjectDescription { get; set; }
-    protected string ProjectLink { get; set; }
-    protected string Alert { get; set; }
+    private List<Client> Clients { get; set; }
+    private string ProjectName { get; set; }
+    private string ProjectDescription { get; set; }
+    private string ProjectLink { get; set; }
+    private string Alert { get; set; }
     
     [Parameter]  
     public string Value { get; set; }  
@@ -77,9 +77,8 @@ else
     private Task OnValueChanged(ChangeEventArgs e) {  
         Value = e.Value.ToString();  
         return ValueChanged.InvokeAsync(Value);  
-    }  
-
-    protected async void AddNewProject()
+    }
+    private async void AddNewProject()
     {
         Alert = " ";
         if(ProjectName == string.Empty || ProjectDescription == string.Empty || ProjectLink == string.Empty || string.IsNullOrEmpty(Value))

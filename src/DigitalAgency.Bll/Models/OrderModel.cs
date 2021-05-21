@@ -1,6 +1,6 @@
 using System;
 using System.Collections.Generic;
-using OrderStateEnum = DigitalAgency.Bll.Models.Enums.OrderStateEnum;
+using DigitalAgency.Bll.Models.Enums;
 
 namespace DigitalAgency.Bll.Models
 {

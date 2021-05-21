@@ -3,6 +3,7 @@
 @using DigitalAgency.Bll.Models
 @using Task = System.Threading.Tasks.Task
 @inject IHttpClientFactory _clientFactory;
+@inject NavigationManager _uriHelper;
 
 
 <link rel="stylesheet" href="css/bootstrap/bootstrap.min.css" />
@@ -30,18 +31,18 @@ else
         </thead>
         <tbody>
 
-            @foreach (var car in ProjectsList)
+            @foreach (var project in ProjectsList)
             {
                 <tr>
-                    <td>@car.Id</td>
-                    <td>@car.ProjectName</td>
-                    <td>@car.ProjectDescription</td>
-                    <td>@car.ProjectLink</td>
+                    <td>@project.Id</td>
+                    <td>@project.ProjectName</td>
+                    <td>@project.ProjectDescription</td>
+                    <td>@project.ProjectLink</td>
                     <td>
-                        <a class="nav-link" href="editproject/@car.Id">
+                        <a class="nav-link" href="editproject/@project.Id">
                             <span class="oi oi-pencil" aria-hidden="true"></span>Edit
                         </a>
-                        <a class="nav-link" href="deleteProject/@car.Id">
+                        <a class="btn btn-primary"  @onclick="@(e => DeleteProject(project.Id))">
                             <span class="oi oi-trash" aria-hidden="true"></span>Delete
                         </a>
                     </td>
@@ -54,8 +55,8 @@ else
 
 @code {
 
-    protected List<ProjectModel> ProjectsList { get; set; }
-    protected string Info;
+    private List<ProjectModel> ProjectsList { get; set; }
+    private string _info;
 
     protected override async Task OnInitializedAsync()
     {
@@ -63,12 +64,22 @@ else
         var client = _clientFactory.CreateClient();
         var result = await client.GetAsync("http://localhost:8443/Project/GetProject");
 
-        Info = await result.Content.ReadAsStringAsync();
+        _info = await result.Content.ReadAsStringAsync();
         var options = new JsonSerializerOptions
         {
             PropertyNameCaseInsensitive = true,
         };
-        ProjectsList = JsonSerializer.Deserialize<List<ProjectModel>>(Info,options);
+        ProjectsList = JsonSerializer.Deserialize<List<ProjectModel>>(_info,options);
     }
 
+    private async Task DeleteProject(int id)
+    {
+        var client = _clientFactory.CreateClient();
+        var result = await client.DeleteAsync($"http://localhost:8443/Project/DeleteProject?id={id}");
+
+        if (result.IsSuccessStatusCode)
+        {
+            _uriHelper.NavigateTo(_uriHelper.Uri, forceLoad: true);
+        }
+    }
 }

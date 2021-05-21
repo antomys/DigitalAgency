@@ -3,6 +3,7 @@
 @using DigitalAgency.Bll.Models
 @using Task = System.Threading.Tasks.Task
 @inject IHttpClientFactory _executorFactory;
+@inject NavigationManager _uriHelper;
 
 
 <link rel="stylesheet" href="css/bootstrap/bootstrap.min.css" />
@@ -45,7 +46,7 @@ else
                     <a class="nav-link" href="editexecutor/@executor.Id">
                         <span class="oi oi-pencil" aria-hidden="true"></span>Edit
                     </a>
-                    <a class="nav-link" href="deleteExecutor/@executor.Id">
+                    <a class="btn btn-primary"  @onclick="@(e => DeleteExecutor(executor.Id))">
                         <span class="oi oi-trash" aria-hidden="true"></span>Delete
                     </a>
                 </td>
@@ -58,8 +59,8 @@ else
 
 @code 
 {
-    protected List<ExecutorModel> ExecutorsList { get; set; }
-    protected string Info;
+    private List<ExecutorModel> ExecutorsList { get; set; }
+    private string _info;
 
     protected override async Task OnInitializedAsync()
     {
@@ -67,13 +68,23 @@ else
         var mechanic = _executorFactory.CreateClient();
         var result = await mechanic.GetAsync("http://localhost:8443/Client/GetExecutor");
 
-        Info = await result.Content.ReadAsStringAsync();
+        _info = await result.Content.ReadAsStringAsync();
         var options = new JsonSerializerOptions
         {
             PropertyNameCaseInsensitive = true,
         };
-        var deserialized = JsonSerializer.Deserialize<List<ExecutorModel>>(Info, options);
+        var deserialized = JsonSerializer.Deserialize<List<ExecutorModel>>(_info, options);
         ExecutorsList = deserialized?.ToList() ;
+    }
+    private async Task DeleteExecutor(int id)
+    {
+        var client = _executorFactory.CreateClient();
+        var result = await client.DeleteAsync($"http://localhost:8443/Client/DeleteExecutor?id={id}");
+
+        if (result.IsSuccessStatusCode)
+        {
+            _uriHelper.NavigateTo(_uriHelper.Uri, forceLoad: true);
+        }
     }
 
 }
