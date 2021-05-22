@@ -6,7 +6,9 @@ using AutoMapper;
 using DigitalAgency.Bll.TelegramBot.Models;
 using DigitalAgency.Bll.TelegramBot.Services.Interfaces;
 using DigitalAgency.Dal.Entities;
+using DigitalAgency.Dal.Entities.Enums;
 using DigitalAgency.Dal.Storages.Interfaces;
+using Telegram.Bot.Types;
 using Telegram.Bot.Types.ReplyMarkups;
 
 namespace DigitalAgency.Bll.TelegramBot.Services
@@ -40,6 +42,17 @@ namespace DigitalAgency.Bll.TelegramBot.Services
             var mapped = _mapper.Map<List<Order>,List<BotShortOrderModel>>(executorOrders);
 
             return mapped;
+        }
+        
+        public Task<InlineKeyboardMarkup> ConstructStatesButtons(Update update, Order thisOrder)
+        {
+            var dict = new ConcurrentDictionary<string, string>();
+            foreach (var name in Enum.GetNames(typeof(OrderStateEnum)))
+            {
+                dict.TryAdd(name, $"{name}:{thisOrder.Id}");
+            }
+
+            return Task.FromResult(KeyboardMessages.DefaultInlineKeyboardMessage(dict));
         }
 
         public Task<InlineKeyboardMarkup> ConstructConfirmOrderButtons(Order thisOrder)

@@ -1,6 +1,10 @@
+using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
+using DigitalAgency.Bll.TelegramBot.Common;
+using DigitalAgency.Dal.Entities;
 using Telegram.Bot.Types.ReplyMarkups;
 
 namespace DigitalAgency.Bll.TelegramBot.Services
@@ -25,6 +29,16 @@ namespace DigitalAgency.Bll.TelegramBot.Services
                 .Cast<IEnumerable<InlineKeyboardButton>>().AsEnumerable();
             
             return new InlineKeyboardMarkup(keyboardButtons); 
+        }
+        public static InlineKeyboardMarkup Calendar(in DateTime date, DateTimeFormatInfo dtfi, Order thisOrder)
+        {
+            var keyboardRows = new List<IEnumerable<InlineKeyboardButton>>();
+
+            keyboardRows.Add(Row.Date(date, dtfi));
+            keyboardRows.Add(Row.DayOfWeek(dtfi));
+            keyboardRows.AddRange(Row.Month(date, dtfi, thisOrder));
+
+            return new InlineKeyboardMarkup(keyboardRows);
         }
     }
 }

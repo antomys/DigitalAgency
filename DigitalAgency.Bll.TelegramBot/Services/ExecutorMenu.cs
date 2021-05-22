@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
@@ -46,11 +47,13 @@ namespace DigitalAgency.Bll.TelegramBot.Services
             _keyboard = KeyboardMessages.DefaultKeyboardMessage(_executorCommands);
         }
 
+        // Crank code
         public async Task StartMenu(Executor executor, Update update)
         {
             if (executor.Position == PositionsEnum.Unknown 
                 || update.Message.Text != null 
-                && Enum.TryParse<PositionsEnum>(update.Message.Text, out _))
+                && Enum.TryParse<PositionsEnum>(update.Message.Text, out _)
+                || update.CallbackQuery is {Data: "Back"})
             {
                 if(await EditPositionMenu(executor, update) == false)
                     return;
@@ -113,6 +116,12 @@ namespace DigitalAgency.Bll.TelegramBot.Services
             var chat = update.CallbackQuery.Message.Chat;
             if (!update.CallbackQuery.Data.Contains(':'))
             {
+                if (update.CallbackQuery.Data == "Back")
+                {
+                    await _telegram.SendTextMessageAsync(chat, "Back", replyMarkup: _keyboard);
+                    return;
+                }
+                   
                 var thisOrder = await _orderStorage.GetOrder(x => x.Id.ToString() == update.CallbackQuery.Data);
                 
                 var mapped = _mapper.Map<BotShortOrderModel>(thisOrder);
@@ -120,7 +129,8 @@ namespace DigitalAgency.Bll.TelegramBot.Services
                                   $"Client Name: {mapped.ClientName}\n" +
                                   $"Client Phone: {mapped.ClientPhone}\n" +
                                   $"Created at: {mapped.CreationDate}\n" +
-                                  $"Due to: {mapped.ScheduledTime}\n";
+                                  $"Due to: {mapped.ScheduledTime}\n" +
+                                  $"State: {Enum.GetName(thisOrder.StateEnum)}";
                 var filePath = thisOrder.Project.ProjectFilePath;
                 
                 if (System.IO.File.Exists(filePath) && Uri.TryCreate(thisOrder.Project.ProjectLink, UriKind.Absolute, out var uriResult) )
@@ -135,7 +145,12 @@ namespace DigitalAgency.Bll.TelegramBot.Services
                 
                 if (thisOrder.ExecutorId == executor.Id)
                 {
-                    await _telegram.SendContactAsync(chat, mapped.ClientPhone, mapped.ClientName, replyMarkup : backKey);
+                    var dictKeys = new ConcurrentDictionary<string, string>();
+                    dictKeys.TryAdd("Edit State", $"state:{thisOrder.Id}");
+                    dictKeys.TryAdd("Edit End date", $"date:{thisOrder.Id}");
+                    dictKeys.TryAdd("Back", "Back");
+                    var editKeys = KeyboardMessages.DefaultInlineKeyboardMessage(dictKeys);
+                    await _telegram.SendContactAsync(chat, mapped.ClientPhone, mapped.ClientName, replyMarkup : editKeys);
                 }
                 else
                 {
@@ -146,7 +161,10 @@ namespace DigitalAgency.Bll.TelegramBot.Services
             else
             {
                 var answerId = update.CallbackQuery.Data.Split(':');
-                var thisOrder = await _orderStorage.GetOrder(x => x.Id.ToString() == answerId[1]);
+
+                var id = answerId[^1];
+                
+                var thisOrder = await _orderStorage.GetOrder(x => x.Id.ToString() == id);
 
                 switch (answerId[0])
                 {
@@ -154,7 +172,8 @@ namespace DigitalAgency.Bll.TelegramBot.Services
                     {
                         thisOrder.ExecutorId = executor.Id;
                         await _orderStorage.UpdateAsync(thisOrder);
-                        await _telegram.SendTextMessageAsync(chat, "Successfully confirmed!\n\nPlease contact client at:");
+                        await _telegram.SendTextMessageAsync(chat,
+                            "Successfully confirmed!\n\nPlease contact client at:");
                         await _telegram.SendTextMessageAsync(thisOrder.Client.ChatId,
                             $"Your order for {thisOrder.Project.ProjectName}" +
                             $" has been picked up by {executor.FirstName}!\n\nPlease contact him at:");
@@ -170,17 +189,62 @@ namespace DigitalAgency.Bll.TelegramBot.Services
                         await _telegram.SendTextMessageAsync(chat, "Okay!", replyMarkup: _keyboard);
                         break;
                     }
+                    case "state":
+                    {
+                        var states = await _executorMenuHelper.ConstructStatesButtons(update, thisOrder);
+                        await _telegram.SendTextMessageAsync(chat, "Choose new order state", replyMarkup: states);
+                        break;
+                    }
+                    case "date" :
+                    {
+                        //todo: implement
+                        var dtfi = CultureInfo.GetCultureInfo("en-US").DateTimeFormat;
+                        var calendarMarkup = KeyboardMessages.Calendar(DateTime.Today, dtfi, thisOrder);
+
+                        await _telegram.SendTextMessageAsync(
+                            chat,
+                            "Pick date:",
+                            replyMarkup: calendarMarkup
+                        );
+                        break;
+                    }
+                    case "pck":
+                    {
+                        var date = DateTimeOffset.Parse(answerId[1]);
+                        await _telegram.SendTextMessageAsync(chat, $"Changed date from\n{thisOrder.ScheduledTime} to " +
+                                                                   $"{date}", replyMarkup: _keyboard);
+
+                        await _telegram.SendTextMessageAsync(thisOrder.Client.ChatId,
+                            $"Your order for project {thisOrder.Project.ProjectName}\n" +
+                            $"has been changed from {thisOrder.ScheduledTime} to {date}");
+
+                        thisOrder.ScheduledTime = date;
+                        await _orderStorage.UpdateAsync(thisOrder);
+
+                        return;
+                    }
                 }
 
+                if (Enum.TryParse<OrderStateEnum>(answerId[0], out var newState))
+                {
+                    await _telegram.SendTextMessageAsync(thisOrder.Client.ChatId, "State of your order on\n" +
+                        $"project {thisOrder.Project.ProjectName} was changed from {Enum.GetName(thisOrder.StateEnum)} " +
+                        $"to {newState}");
+                    await _telegram.SendTextMessageAsync(chat,
+                        $"Success! Changed state from {thisOrder.StateEnum}" +
+                        $"to {newState}",replyMarkup:_keyboard);
+                    
+                    thisOrder.StateEnum = newState;
+                    await _orderStorage.UpdateAsync(thisOrder);  
+                }
             }
-            
-            throw new NotImplementedException();
         }
         
         public async Task ProcessReply(Executor executor, Update update)
         {
             throw new NotImplementedException();
         }
+       
         private async Task<bool> EditPositionMenu(Executor executor, Update update)
         {
             if (update.Message.Text == null)

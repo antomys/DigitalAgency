@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using DigitalAgency.Bll.TelegramBot.Models;
 using DigitalAgency.Dal.Entities;
+using Telegram.Bot.Types;
 using Telegram.Bot.Types.ReplyMarkups;
 
 namespace DigitalAgency.Bll.TelegramBot.Services.Interfaces
@@ -11,5 +12,6 @@ namespace DigitalAgency.Bll.TelegramBot.Services.Interfaces
         Task<List<BotShortOrderModel>> ViewMyOrders(Executor executor);
         Task<List<BotShortOrderModel>> ViewFreeOrders(Executor executor);
         Task<InlineKeyboardMarkup> ConstructConfirmOrderButtons(Order thisOrder);
+        Task<InlineKeyboardMarkup> ConstructStatesButtons(Update update, Order thisOrder);
     }
 }
