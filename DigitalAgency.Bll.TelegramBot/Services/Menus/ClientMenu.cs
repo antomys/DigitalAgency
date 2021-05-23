@@ -227,6 +227,7 @@ namespace DigitalAgency.Bll.TelegramBot.Services.Menus
                         dictKeys.TryAdd("Edit description", $"project:description:{thisProject.Id}");
                         dictKeys.TryAdd("Edit link", $"project:link:{thisProject.Id}");
                         dictKeys.TryAdd("Edit file", $"project:file:{thisProject.Id}");
+                        dictKeys.TryAdd("Delete", $"project:delete:{thisProject.Id}");
                         dictKeys.TryAdd("Back", "back");
                         var editKeys = KeyboardMessages.DefaultInlineKeyboardMessage(dictKeys);
 
@@ -234,27 +235,38 @@ namespace DigitalAgency.Bll.TelegramBot.Services.Menus
                     }
                     else
                     {
-                        if (entityActionId[1] == "order")
-                        { 
-                            var unnamedExecutor = await _clientMenuHelper.GetNullExecutor(); 
-                            var order = new Order
+                        switch (entityActionId[1])
+                        {
+                            case "order":
                             {
-                                ClientId = client.Id, 
-                                ExecutorId = unnamedExecutor.Id, 
-                                ProjectId = thisProject.Id, 
-                                CreationDate = DateTimeOffset.Now, 
-                                StateEnum = OrderStateEnum.New
+                                var unnamedExecutor = await _clientMenuHelper.GetNullExecutor(); 
+                                var order = new Order
+                                {
+                                    ClientId = client.Id, 
+                                    ExecutorId = unnamedExecutor.Id, 
+                                    ProjectId = thisProject.Id, 
+                                    CreationDate = DateTimeOffset.Now, 
+                                    StateEnum = OrderStateEnum.New
                                 
-                            };
+                                };
                             
-                            await _orderStorage.CreateOrderAsync(order);
+                                await _orderStorage.CreateOrderAsync(order);
                             
-                            var dtfi = CultureInfo.GetCultureInfo("en-US").DateTimeFormat; 
-                            var calendarMarkup = KeyboardMessages.Calendar(DateTime.Today, dtfi, order,"order:");
+                                var dtfi = CultureInfo.GetCultureInfo("en-US").DateTimeFormat; 
+                                var calendarMarkup = KeyboardMessages.Calendar(DateTime.Today, dtfi, order,"order:");
                             
-                            await _telegram.SendTextMessageAsync(client.ChatId, $"Please specify date", replyMarkup:calendarMarkup); 
-                            return;
+                                await _telegram.SendTextMessageAsync(client.ChatId, $"Please specify date", replyMarkup:calendarMarkup); 
+                                return;
+                            }
+                            case "delete":
+                            {
+                                await _projectStorage.DeleteProjectAsync(thisProject.Id);
+                                await _telegram.SendTextMessageAsync(chat, "Successfully deleted!",
+                                    replyMarkup: _keyboard);
+                                return;
+                            }
                         }
+
                         var action = new Action
                         {
                             EntityType = typeof(Project).ToString(),
