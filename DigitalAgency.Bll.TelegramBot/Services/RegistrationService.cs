@@ -120,6 +120,7 @@ namespace DigitalAgency.Bll.TelegramBot.Services
             thisContact.ChatId = message.Chat.Id;
             
             await _clientStorage.UpdateClientAsync(thisContact);
+            
             return true;
         }
         private async Task<bool> CreateBotExecutor(Message message)

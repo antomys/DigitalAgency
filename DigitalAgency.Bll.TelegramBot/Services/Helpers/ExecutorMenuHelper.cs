@@ -11,7 +11,7 @@ using DigitalAgency.Dal.Storages.Interfaces;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.ReplyMarkups;
 
-namespace DigitalAgency.Bll.TelegramBot.Services
+namespace DigitalAgency.Bll.TelegramBot.Services.Helpers
 {
     public class ExecutorMenuHelper : IExecutorMenuHelper
     {

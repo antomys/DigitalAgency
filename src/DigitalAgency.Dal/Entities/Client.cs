@@ -21,5 +21,7 @@ namespace DigitalAgency.Dal.Entities
         
         public virtual ICollection<Project> Projects { get; set; }
         
+        public virtual ICollection<Action> Actions { get; set; }
+        
     }
 }

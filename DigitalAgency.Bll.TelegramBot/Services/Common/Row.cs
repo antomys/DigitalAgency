@@ -4,7 +4,7 @@ using System.Globalization;
 using DigitalAgency.Dal.Entities;
 using Telegram.Bot.Types.ReplyMarkups;
 
-namespace DigitalAgency.Bll.TelegramBot.Common
+namespace DigitalAgency.Bll.TelegramBot.Services.Common
 {
 public static class Row
     {

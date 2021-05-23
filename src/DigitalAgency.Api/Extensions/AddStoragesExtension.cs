@@ -12,6 +12,7 @@ namespace DigitalAgency.Api.Extensions
                 .AddTransient<IClientStorage, ClientStorage>()
                 .AddTransient<IExecutorStorage, ExecutorStorage>()
                 .AddTransient<IProjectStorage, ProjectStorage>()
+                .AddTransient<IActionStorage,ActionStorage>()
                 .AddTransient<IOrderStorage, OrderStorage>();
         }
     }

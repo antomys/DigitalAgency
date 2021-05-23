@@ -25,7 +25,7 @@ namespace DigitalAgency.Dal.Storages
         }
         public async Task<Client> GetClientAsync(Expression<Func<Client, bool>> expression)
         {
-            return await _context.Clients.FirstOrDefaultAsync(expression);
+            return await _context.Clients.AsNoTracking().FirstOrDefaultAsync(expression);
         }
         public async Task DeleteClientAsync(int id)
         {

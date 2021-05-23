@@ -1,4 +1,4 @@
-namespace DigitalAgency.Bll.TelegramBot.Common
+namespace DigitalAgency.Bll.TelegramBot.Services.Common
 {
     public static class Constants
     {

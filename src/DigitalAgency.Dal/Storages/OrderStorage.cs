@@ -36,7 +36,7 @@ namespace DigitalAgency.Dal.Storages
             return result;
         }
 
-        public async Task<Order> GetOrder(Expression<Func<Order, bool>> expression)
+        public async Task<Order> GetOrderAsync(Expression<Func<Order, bool>> expression)
         {
             return await _context.Orders.Where(expression)
                 .Include(x => x.Executor)
@@ -61,6 +61,12 @@ namespace DigitalAgency.Dal.Storages
                 .Include(x => x.Executor)
                 .Include(x => x.Client).ToListAsync();
         }
+
+        public async Task<bool> AnyAsync(Expression<Func<Order,bool>> expression)
+        {
+            return await _context.Orders.AnyAsync(expression);
+        }
+
         public async Task DeleteOrderAsync(int id)
         {
             var thisService = await _context.Orders.FirstOrDefaultAsync(x => x.Id == id);

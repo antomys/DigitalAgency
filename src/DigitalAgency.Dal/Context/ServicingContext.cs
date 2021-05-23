@@ -12,6 +12,7 @@ namespace DigitalAgency.Dal.Context
         public DbSet<Card> Tasks { get; set; }
         public DbSet<Order> Orders { get; set; }
         public DbSet<Executor> Executors { get; set; }
+        public DbSet<Action> Actions { get; set; }
 
         public ServicingContext(DbContextOptions<ServicingContext> options) : base(options)
         {
@@ -23,6 +24,7 @@ namespace DigitalAgency.Dal.Context
         }
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
+            modelBuilder.Entity<Action>().HasQueryFilter(filter => !filter.IsDone);
             base.OnModelCreating(modelBuilder);
         }
     }

@@ -16,9 +16,8 @@ using Telegram.Bot;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.InputFiles;
 using Telegram.Bot.Types.ReplyMarkups;
-using File = Telegram.Bot.Types.File;
 
-namespace DigitalAgency.Bll.TelegramBot.Services
+namespace DigitalAgency.Bll.TelegramBot.Services.Menus
 {
     public class ExecutorMenu : IExecutorMenu
     {
@@ -55,7 +54,7 @@ namespace DigitalAgency.Bll.TelegramBot.Services
                 && Enum.TryParse<PositionsEnum>(update.Message.Text, out _)
                 || update.CallbackQuery is {Data: "Back"})
             {
-                if(await EditPositionMenu(executor, update) == false)
+                if(await EditPositionMenu(update) == false)
                     return;
                 
                 await _telegram.SendTextMessageAsync(update.Message.Chat,$"Welcome, {executor.FirstName}!", replyMarkup: _keyboard);
@@ -122,7 +121,7 @@ namespace DigitalAgency.Bll.TelegramBot.Services
                     return;
                 }
                    
-                var thisOrder = await _orderStorage.GetOrder(x => x.Id.ToString() == update.CallbackQuery.Data);
+                var thisOrder = await _orderStorage.GetOrderAsync(x => x.Id.ToString() == update.CallbackQuery.Data);
                 
                 var mapped = _mapper.Map<BotShortOrderModel>(thisOrder);
                 var orderString = $"Project Name: {mapped.ProjectName}\n" +
@@ -130,10 +129,10 @@ namespace DigitalAgency.Bll.TelegramBot.Services
                                   $"Client Phone: {mapped.ClientPhone}\n" +
                                   $"Created at: {mapped.CreationDate}\n" +
                                   $"Due to: {mapped.ScheduledTime}\n" +
-                                  $"State: {Enum.GetName(thisOrder.StateEnum)}";
+                                  $"State: {Enum.GetName(thisOrder.StateEnum)}\n";
                 var filePath = thisOrder.Project.ProjectFilePath;
                 
-                if (System.IO.File.Exists(filePath) && Uri.TryCreate(thisOrder.Project.ProjectLink, UriKind.Absolute, out var uriResult) )
+                if (System.IO.File.Exists(filePath) && Uri.TryCreate(thisOrder.Project.ProjectLink, UriKind.Absolute, out _) )
                 {
                     await using var stream = System.IO.File.Open(filePath, FileMode.Open);
                     var inputOnlineFile = new InputOnlineFile(stream) {FileName = Path.GetFileName(filePath)};
@@ -164,7 +163,7 @@ namespace DigitalAgency.Bll.TelegramBot.Services
 
                 var id = answerId[^1];
                 
-                var thisOrder = await _orderStorage.GetOrder(x => x.Id.ToString() == id);
+                var thisOrder = await _orderStorage.GetOrderAsync(x => x.Id.ToString() == id);
 
                 switch (answerId[0])
                 {
@@ -211,8 +210,8 @@ namespace DigitalAgency.Bll.TelegramBot.Services
                     case "pck":
                     {
                         var date = DateTimeOffset.Parse(answerId[1]);
-                        await _telegram.SendTextMessageAsync(chat, $"Changed date from\n{thisOrder.ScheduledTime} to " +
-                                                                   $"{date}", replyMarkup: _keyboard);
+                        await _telegram.SendTextMessageAsync(chat, $"Changed date\nfrom {thisOrder.ScheduledTime}\n" +
+                                                                   $"to {date}", replyMarkup: _keyboard);
 
                         await _telegram.SendTextMessageAsync(thisOrder.Client.ChatId,
                             $"Your order for project {thisOrder.Project.ProjectName}\n" +
@@ -239,13 +238,7 @@ namespace DigitalAgency.Bll.TelegramBot.Services
                 }
             }
         }
-        
-        public async Task ProcessReply(Executor executor, Update update)
-        {
-            throw new NotImplementedException();
-        }
-       
-        private async Task<bool> EditPositionMenu(Executor executor, Update update)
+        private async Task<bool> EditPositionMenu(Update update)
         {
             if (update.Message.Text == null)
             {

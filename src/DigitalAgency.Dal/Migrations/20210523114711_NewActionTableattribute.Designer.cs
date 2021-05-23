@@ -10,8 +10,8 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace DigitalAgency.Dal.Migrations
 {
     [DbContext(typeof(ServicingContext))]
-    [Migration("20210517211750_NullableFk")]
-    partial class NullableFk
+    [Migration("20210523114711_NewActionTableattribute")]
+    partial class NewActionTableattribute
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
@@ -20,6 +20,35 @@ namespace DigitalAgency.Dal.Migrations
                 .HasAnnotation("Relational:MaxIdentifierLength", 63)
                 .HasAnnotation("ProductVersion", "5.0.6")
                 .HasAnnotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn);
+
+            modelBuilder.Entity("DigitalAgency.Dal.Entities.Action", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasAnnotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn);
+
+                    b.Property<DateTimeOffset>("ActionDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("ActionName")
+                        .HasColumnType("text");
+
+                    b.Property<int>("ClientId")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("EntityId")
+                        .HasColumnType("integer");
+
+                    b.Property<bool>("IsDone")
+                        .HasColumnType("boolean");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ClientId");
+
+                    b.ToTable("Actions");
+                });
 
             modelBuilder.Entity("DigitalAgency.Dal.Entities.Card", b =>
                 {
@@ -120,8 +149,8 @@ namespace DigitalAgency.Dal.Migrations
                     b.Property<int>("ClientId")
                         .HasColumnType("integer");
 
-                    b.Property<DateTime>("CreationDate")
-                        .HasColumnType("timestamp without time zone");
+                    b.Property<DateTimeOffset>("CreationDate")
+                        .HasColumnType("timestamp with time zone");
 
                     b.Property<int?>("ExecutorId")
                         .HasColumnType("integer");
@@ -129,8 +158,8 @@ namespace DigitalAgency.Dal.Migrations
                     b.Property<int>("ProjectId")
                         .HasColumnType("integer");
 
-                    b.Property<DateTime>("ScheduledTime")
-                        .HasColumnType("timestamp without time zone");
+                    b.Property<DateTimeOffset>("ScheduledTime")
+                        .HasColumnType("timestamp with time zone");
 
                     b.Property<int>("StateEnum")
                         .HasColumnType("integer");
@@ -369,6 +398,17 @@ namespace DigitalAgency.Dal.Migrations
                     b.ToTable("AspNetUserTokens");
                 });
 
+            modelBuilder.Entity("DigitalAgency.Dal.Entities.Action", b =>
+                {
+                    b.HasOne("DigitalAgency.Dal.Entities.Client", "Client")
+                        .WithMany("Actions")
+                        .HasForeignKey("ClientId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Client");
+                });
+
             modelBuilder.Entity("DigitalAgency.Dal.Entities.Card", b =>
                 {
                     b.HasOne("DigitalAgency.Dal.Entities.Order", "Order")
@@ -469,6 +509,8 @@ namespace DigitalAgency.Dal.Migrations
 
             modelBuilder.Entity("DigitalAgency.Dal.Entities.Client", b =>
                 {
+                    b.Navigation("Actions");
+
                     b.Navigation("Orders");
 
                     b.Navigation("Projects");
