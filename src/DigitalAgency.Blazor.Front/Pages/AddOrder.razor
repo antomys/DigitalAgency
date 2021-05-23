@@ -41,7 +41,7 @@ else
         <tr>
             <td>Project: </td>
             <select class="custom-select" @onchange="OnProjectValueChanged" title="Region is required ">
-                <option value="Select" selected disabled="disabled">Choose Car</option>
+                <option value="Select" selected disabled="disabled">Choose Project</option>
                 @foreach (var car in Projects)
                 {
                     <option value="@car.Id">@car.ProjectName @car.ProjectDescription</option>
@@ -51,7 +51,7 @@ else
         <tr>
             <td>Executor: </td>
             <select class="custom-select" @onchange="OnExecutorValueChanged" title="Region is required ">
-                <option value="Select" selected disabled="disabled">Choose Mechanic</option>
+                <option value="Select" selected disabled="disabled">Choose Executor</option>
                 @foreach (var client in Executors)
                 {
                     <option value="@client.Id">@client.FirstName @client.LastName</option>
@@ -109,7 +109,8 @@ else
         result = await client.GetAsync("http://localhost:8443/Client/GetExecutor");
         info = await result.Content.ReadAsStringAsync();
         var newDeserialized = JsonConvert.DeserializeObject<List<ExecutorModel>>(info);
-        Executors = newDeserialized?.ToList();
+        Executors = newDeserialized?.Where(x=>x.FirstName!="NULL").ToList();
+        ValueExecutor = newDeserialized?.FirstOrDefault(x => x.FirstName == "NULL")?.Id.ToString();
         
         Projects = new List<ProjectModel>();
     }

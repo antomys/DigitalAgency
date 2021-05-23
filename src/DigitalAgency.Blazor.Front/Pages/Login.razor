@@ -1,0 +1,23 @@
+@page "/Login"
+@inherits DigitalAgency.Blazor.Front.LoginService.LoginModel
+
+<h3>Login</h3>
+
+<div class="row">
+    <div class="col-md-6 offset-md-3">
+        
+        <EditForm Model="@LoginData" OnValidSubmit="LoginAsync">
+            <DataAnnotationsValidator/>
+            <ValidationSummary/>
+            
+            <label for="username">Username</label>
+            <InputText id="username" @bind-Value="LoginData.UserName" class="form-control"/>
+            <label for="password">Password</label>
+            <InputText id="password" @bind-Value="LoginData.Password" class="form-control"/>
+
+            <p class="my-4">
+                <button type="submit" class="btn btn-primary">Log in</button>
+            </p>
+        </EditForm>
+    </div>
+</div>
