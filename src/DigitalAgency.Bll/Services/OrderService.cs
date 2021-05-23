@@ -57,7 +57,7 @@ namespace DigitalAgency.Bll.Services
         
         public async Task<bool> UpdateAsync(OrderModel order)
         {
-            var thisOrder = await _orderStorage.GetOrder(x => x.Id == order.Id);
+            var thisOrder = await _orderStorage.GetOrderAsync(x => x.Id == order.Id);
             if (thisOrder == null)
                 return false;
             var mappedOrder = _mapper.Map<Order>(order);
@@ -71,7 +71,7 @@ namespace DigitalAgency.Bll.Services
 
         public async Task<bool> DeleteOrder(int id)
         {
-            if (await _orderStorage.GetOrder(order => order.Id == id) == null) return false;
+            if (await _orderStorage.GetOrderAsync(order => order.Id == id) == null) return false;
             await _orderStorage.DeleteOrderAsync(id);
             return true;
         }

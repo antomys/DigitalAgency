@@ -34,6 +34,12 @@ namespace DigitalAgency.Dal.Storages
                 .Include(x => x.Orders)
                 .ThenInclude(x => x.Client).ToListAsync();
         }
+
+        public async Task<bool> AnyAsync(Expression<Func<Project, bool>> expression)
+        {
+            return await _context.Projects.AnyAsync(expression);
+        }
+
         public async Task<Project> GetProjectAsync(Expression<Func<Project, bool>> expression)
         {
             return await _context.Projects.Where(expression)

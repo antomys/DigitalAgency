@@ -9,8 +9,7 @@ namespace DigitalAgency.Bll.TelegramBot.Services.Interfaces
     public interface IButtons
     {
         Task ViewOrderButtons(IEnumerable<BotShortOrderModel> orders, Chat chat,
-            string messageString = "Orders");
-        Task ViewProjectButtons(IEnumerable<Project> projects, long chatId, string messageString);
-        Task AddOrderViewProjectButtons(IEnumerable<Project> projects, long chatId, string key = "project");
+            string messageString = "Orders", string orderString = "");
+        Task ViewProjectButtons(IEnumerable<Project> projects, Chat chat, string messageString);
     }
 }

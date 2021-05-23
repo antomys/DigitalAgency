@@ -4,7 +4,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 namespace DigitalAgency.Dal.Migrations
 {
-    public partial class NullableFk : Migration
+    public partial class NewActionTable : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {
@@ -191,6 +191,28 @@ namespace DigitalAgency.Dal.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "Actions",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    ActionName = table.Column<string>(type: "text", nullable: true),
+                    EntityId = table.Column<int>(type: "integer", nullable: false),
+                    ClientId = table.Column<int>(type: "integer", nullable: false),
+                    ActionDate = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Actions", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Actions_Clients_ClientId",
+                        column: x => x.ClientId,
+                        principalTable: "Clients",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "Projects",
                 columns: table => new
                 {
@@ -222,8 +244,8 @@ namespace DigitalAgency.Dal.Migrations
                     ClientId = table.Column<int>(type: "integer", nullable: false),
                     ExecutorId = table.Column<int>(type: "integer", nullable: true),
                     ProjectId = table.Column<int>(type: "integer", nullable: false),
-                    CreationDate = table.Column<DateTime>(type: "timestamp without time zone", nullable: false),
-                    ScheduledTime = table.Column<DateTime>(type: "timestamp without time zone", nullable: false),
+                    CreationDate = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false),
+                    ScheduledTime = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false),
                     StateEnum = table.Column<int>(type: "integer", nullable: false)
                 },
                 constraints: table =>
@@ -270,6 +292,11 @@ namespace DigitalAgency.Dal.Migrations
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 });
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Actions_ClientId",
+                table: "Actions",
+                column: "ClientId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_AspNetRoleClaims_RoleId",
@@ -336,6 +363,9 @@ namespace DigitalAgency.Dal.Migrations
 
         protected override void Down(MigrationBuilder migrationBuilder)
         {
+            migrationBuilder.DropTable(
+                name: "Actions");
+
             migrationBuilder.DropTable(
                 name: "AspNetRoleClaims");
 

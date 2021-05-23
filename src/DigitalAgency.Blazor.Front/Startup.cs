@@ -1,4 +1,11 @@
+using System;
+using System.Collections.Generic;
+using System.Security.Claims;
+using System.Threading.Tasks;
+using DigitalAgency.Blazor.Front.Infrastructure;
+using DigitalAgency.Blazor.Front.LoginService;
 using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -14,18 +21,17 @@ namespace DigitalAgency.Blazor.Front
         }
 
         public IConfiguration Configuration { get; }
-
-        // This method gets called by the runtime. Use this method to add services to the container.
-        // For more information on how to configure your application, visit http://go.microsoft.com/fwlink/?LinkID=398940
+        
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddRazorPages();
+            services.AddScoped<AuthenticationStateProvider, TokenAuthenticationStateProvider>();
+            services.AddScoped<ILocalStorageService, LocalStorageService>();
             services.AddServerSideBlazor();
             
             services.AddHttpClient();
         }
-
-        // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
+        
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
             if (env.IsDevelopment())
@@ -51,6 +57,45 @@ namespace DigitalAgency.Blazor.Front
             
                 endpoints.MapFallbackToPage("/_Host");
             });
+        }
+    }
+
+    public class TokenAuthenticationStateProvider : AuthenticationStateProvider
+    {
+        private readonly ILocalStorageService _localStorageService;
+        public TokenAuthenticationStateProvider(ILocalStorageService localStorageService)
+        {
+            _localStorageService = localStorageService;
+        }
+        public override async Task<AuthenticationState> GetAuthenticationStateAsync()
+        {
+            AuthenticationState ReturnAnonymous()
+            {
+                var anonymousIdentity = new ClaimsIdentity();
+                var anonPrincipals = new ClaimsPrincipal(anonymousIdentity);
+                return new AuthenticationState(anonPrincipals);
+            }
+            var token = await _localStorageService.GetAsync<SecurityToken>(nameof(SecurityToken));
+
+            if (token == null)
+            {
+                return ReturnAnonymous();
+            }
+
+            if (string.IsNullOrEmpty(token.AccessToken))
+            {
+                return ReturnAnonymous();
+            }
+
+            var claims = new List<Claim>
+            {
+                new(ClaimTypes.Name,token.UserName),
+                new(ClaimTypes.Expired,token.ExpiredAt.ToLongDateString())
+            };
+            var identity = new ClaimsIdentity(claims,"Token");
+            var principal = new ClaimsPrincipal(identity);
+            return new AuthenticationState(principal);
+           
         }
     }
 }

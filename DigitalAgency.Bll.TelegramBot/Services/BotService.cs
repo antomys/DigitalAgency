@@ -102,7 +102,7 @@ namespace DigitalAgency.Bll.TelegramBot.Services
                 } 
                 else if (update.Message.ReplyToMessage != null)
                 {
-                    await _executorMenu.ProcessReply(thisExecutor, update);
+                    throw new NotImplementedException();
                 }
                 else
                 {
@@ -113,16 +113,16 @@ namespace DigitalAgency.Bll.TelegramBot.Services
             {
                 if (update.CallbackQuery != null)
                 {
-                    
+                    await _clientMenu.ProcessCallBack(thisClient, update);
                 } 
                 else if (update.Message.ReplyToMessage != null)
                 {
-                
+                    await _clientMenu.ProcessReplyToMessage(thisClient, update);
                 }
                 else
                 {
                     //todo: client menu
-                    //await _clientMenu.ClientMainMenu();
+                    await _clientMenu.ClientMainMenu(thisClient,update);
                 }
             }
             else

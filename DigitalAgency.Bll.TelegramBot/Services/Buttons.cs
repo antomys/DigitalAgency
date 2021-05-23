@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using DigitalAgency.Bll.TelegramBot.Models;
@@ -21,12 +22,18 @@ namespace DigitalAgency.Bll.TelegramBot.Services
             _telegram = telegram;
         }
 
-        public async Task ViewOrderButtons(IEnumerable<BotShortOrderModel> orders, Chat chat, string messageString = "Orders")
+        public async Task ViewOrderButtons(IEnumerable<BotShortOrderModel> orders, Chat chat, string messageString = "Orders",
+            string orderString = "")
         {
             var keyOrders = new ConcurrentDictionary<string,string>();
             foreach (var order in orders)
             {
-                keyOrders.TryAdd("Project: "+order.ProjectName+" Tasks: " +order.TasksCount, order.Id.ToString());
+                if(string.IsNullOrEmpty(orderString))
+                    keyOrders.TryAdd("Project: "+order.ProjectName+"\nTasks: " +order.TasksCount, order.Id.ToString());
+                else
+                {
+                    keyOrders.TryAdd("Project: "+order.ProjectName+"\nState: " +Enum.GetName(order.StateEnum), orderString+':'+order.Id);
+                }
             }
         
             var keyboard = KeyboardMessages.DefaultInlineKeyboardMessage(keyOrders);
@@ -34,30 +41,17 @@ namespace DigitalAgency.Bll.TelegramBot.Services
             await _telegram.SendTextMessageAsync(chat, messageString, replyMarkup: keyboard);
         }
         
-        public async Task ViewProjectButtons(IEnumerable<Project> projects, long chatId, string messageString = "Projects")
+        
+        public async Task ViewProjectButtons(IEnumerable<Project> projects, Chat chat, string messageString)
         {
             var keyOrders = new ConcurrentDictionary<string,string>();
             foreach (var project in projects)
             {
-                keyOrders.TryAdd(project.ProjectName + " " + project.ProjectDescription, project.Id.ToString());
+                keyOrders.TryAdd(project.ProjectName, "project:"+project.Id);
             }
             var keyboard = KeyboardMessages.DefaultInlineKeyboardMessage(keyOrders);
             
-            await _telegram.SendTextMessageAsync(chatId, messageString, replyMarkup: keyboard);
+            await _telegram.SendTextMessageAsync(chat, messageString, replyMarkup: keyboard);
         }
-        
-        //todo: what is this?
-        public async Task AddOrderViewProjectButtons(IEnumerable<Project> projects, long chatId, string key = "project")
-        {
-            var keyOrders = new ConcurrentDictionary<string,string>();
-            foreach (var project in projects)
-            {
-                keyOrders.TryAdd(project.ProjectName + " " + project.ProjectDescription + " ; " + project.ProjectLink, 
-                    string.Concat(key,";",project.Id));
-            }
-            var keyboard = KeyboardMessages.DefaultInlineKeyboardMessage(keyOrders);
-        
-            await _telegram.SendTextMessageAsync(chatId, key, replyMarkup: keyboard);
-        } 
     }
 }

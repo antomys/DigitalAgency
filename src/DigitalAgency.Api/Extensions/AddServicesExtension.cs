@@ -5,7 +5,9 @@ using DigitalAgency.Bll.Services;
 using DigitalAgency.Bll.Services.Interfaces;
 using DigitalAgency.Bll.TelegramBot;
 using DigitalAgency.Bll.TelegramBot.Services;
+using DigitalAgency.Bll.TelegramBot.Services.Helpers;
 using DigitalAgency.Bll.TelegramBot.Services.Interfaces;
+using DigitalAgency.Bll.TelegramBot.Services.Menus;
 using DigitalAgency.Dal.Context;
 using FluentValidation;
 using Microsoft.Extensions.Configuration;
@@ -27,8 +29,10 @@ namespace DigitalAgency.Api.Extensions
                 .AddTransient<IProjectService, ProjectService>()
                 .AddTransient<IOrderService, OrderService>()
                 
+                .AddTransient(typeof(DownloadFileExtension))
                 .AddTransient<IButtons,Buttons>()
                 .AddTransient<IExecutorMenuHelper,ExecutorMenuHelper>()
+                .AddTransient<IClientMenuHelper,ClientMenuHelper>()
                 .AddTransient<IRegistrationService,RegistrationService>()
                 .AddTransient<IBotService, BotService>()
                 .AddTransient<IExecutorMenu,ExecutorMenu>()

@@ -74,7 +74,7 @@ else
             PropertyNameCaseInsensitive = true,
         };
         var deserialized = JsonSerializer.Deserialize<List<ExecutorModel>>(_info, options);
-        ExecutorsList = deserialized?.ToList() ;
+        ExecutorsList = deserialized?.Where(x=>x.FirstName != "NULL").ToList() ;
     }
     private async Task DeleteExecutor(int id)
     {

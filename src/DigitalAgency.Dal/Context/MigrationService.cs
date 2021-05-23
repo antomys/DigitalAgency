@@ -33,6 +33,7 @@ namespace DigitalAgency.Dal.Context
             using var scope = _serviceProvider.CreateScope();
             await using var productManagerContext = scope.ServiceProvider.GetRequiredService<ServicingContext>();
             await productManagerContext.Database.MigrateAsync(cancellationToken);
+            await SeedingExtension.PopulateDatabase(productManagerContext);
         }
 
         /// <summary>

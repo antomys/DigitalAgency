@@ -8,6 +8,5 @@ namespace DigitalAgency.Bll.TelegramBot.Services.Interfaces
     {
         Task StartMenu(Executor executor, Update update);
         Task ProcessCallBack(Executor executor, Update update);
-        Task ProcessReply(Executor executor, Update update);
     }
 }

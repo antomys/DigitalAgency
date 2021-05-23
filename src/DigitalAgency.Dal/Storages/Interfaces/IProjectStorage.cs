@@ -13,6 +13,7 @@ namespace DigitalAgency.Dal.Storages.Interfaces
         Task<List<Project>> GetProjectsAsync();
         Task<Project> GetLastAdded(int ownerId);
         Task<List<Project>> GetProjectsAsync(Expression<Func<Project,bool>> expression);
+        Task<bool> AnyAsync(Expression<Func<Project,bool>> expression);
         Task<Project> GetProjectAsync(Expression<Func<Project,bool>> expression);
         Task DeleteProjectAsync(int id);
         Task UpdateProjectAsync(Project project);
