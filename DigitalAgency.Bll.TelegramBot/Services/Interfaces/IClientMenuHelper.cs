@@ -12,5 +12,6 @@ namespace DigitalAgency.Bll.TelegramBot.Services.Interfaces
         Task<List<BotShortOrderModel>> ViewClientOrders(Client thisClient);
         Task<List<Project>> ViewClientProjects(Client thisClient);
         Task<InlineKeyboardMarkup> ConstructClientOrderButtons(Update update, Order thisOrder);
+        Task<Executor> GetNullExecutor();
     }
 }

@@ -30,13 +30,13 @@ namespace DigitalAgency.Bll.TelegramBot.Services
             
             return new InlineKeyboardMarkup(keyboardButtons); 
         }
-        public static InlineKeyboardMarkup Calendar(in DateTime date, DateTimeFormatInfo dtfi, Order thisOrder)
+        public static InlineKeyboardMarkup Calendar(in DateTime date, DateTimeFormatInfo dtfi, Order thisOrder, string additionalPayload = "")
         {
             var keyboardRows = new List<IEnumerable<InlineKeyboardButton>>();
 
             keyboardRows.Add(Row.Date(date, dtfi));
             keyboardRows.Add(Row.DayOfWeek(dtfi));
-            keyboardRows.AddRange(Row.Month(date, dtfi, thisOrder));
+            keyboardRows.AddRange(Row.Month(date, dtfi, thisOrder, additionalPayload));
 
             return new InlineKeyboardMarkup(keyboardRows);
         }

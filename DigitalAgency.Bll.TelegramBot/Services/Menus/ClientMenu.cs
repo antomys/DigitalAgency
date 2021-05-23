@@ -1,8 +1,10 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
 using DigitalAgency.Bll.TelegramBot.Services.Helpers;
 using DigitalAgency.Bll.TelegramBot.Services.Interfaces;
@@ -96,10 +98,6 @@ namespace DigitalAgency.Bll.TelegramBot.Services.Menus
                         replyMarkup: new ForceReplyMarkup());
                     break;
                 }
-                case "Create order":
-                {
-                    break;
-                }
                 case "View My Orders":
                 {
                     var orders = await _clientMenuHelper.ViewClientOrders(client);
@@ -145,13 +143,15 @@ namespace DigitalAgency.Bll.TelegramBot.Services.Menus
                         var orderString = $"Project Name: {thisOrder.Project.ProjectName}\n" +
                                           $"Created at: {thisOrder.CreationDate}\n" +
                                           $"Due to: {thisOrder.ScheduledTime}\n" +
-                                          $"State: {Enum.GetName(thisOrder.StateEnum)}";
+                                          $"State: {Enum.GetName(thisOrder.StateEnum)}\n";
                         if (thisOrder.Executor.FirstName != "NULL")
                         {
+                            var phoneNumber = Encoding.UTF8.GetString(Convert.FromBase64String(thisOrder.Executor.PhoneNumber));
                             orderString += $"Executor name:{thisOrder.Executor.FirstName}\n" +
-                                           $"Executor phone:{thisOrder.Executor.PhoneNumber}";
+                                           $"Executor phone:{phoneNumber}";
+                            
                             await _telegram.SendContactAsync(chat, 
-                                thisOrder.Executor.PhoneNumber, thisOrder.Executor.FirstName);
+                                phoneNumber, thisOrder.Executor.FirstName);
                         }
                         
                         var dictKeys = new ConcurrentDictionary<string, string>();
@@ -173,15 +173,31 @@ namespace DigitalAgency.Bll.TelegramBot.Services.Menus
                         }
                         case "cancel":
                         {
-                            await _telegram.SendTextMessageAsync(chat,
+                            if(thisOrder.Executor.FirstName != "NULL")
+                                await _telegram.SendTextMessageAsync(thisOrder.Executor.ChatId,
                                 $"State of order for project {thisOrder.Project.ProjectName}" +
-                                $"was changed by client {client.FirstName}\n" +
+                                $" was changed by client {client.FirstName}\n" +
                                 $"From {thisOrder.StateEnum} to {OrderStateEnum.Canceled}");
                         
                             thisOrder.StateEnum = OrderStateEnum.Canceled;
                             await _orderStorage.UpdateAsync(thisOrder);
                             //todo debug. new feature
                             await _telegram.SendTextMessageAsync(chat, "Successfully cancelled!", replyMarkup: _keyboard);
+                            return;
+                        }
+                        case "pck":
+                        {
+                            var date = DateTimeOffset.Parse(entityActionId[2]);
+
+                            await _telegram.SendTextMessageAsync(chat,
+                                $"Your date in order for project {thisOrder.Project.ProjectName}\n" +
+                                $"has been changed to {date}", replyMarkup: _keyboard);
+
+                            await _telegram.SendTextMessageAsync(chat, "Successfully created order!");
+
+                            thisOrder.ScheduledTime = date;
+                            await _orderStorage.UpdateAsync(thisOrder);
+
                             return;
                         }
                     }
@@ -206,6 +222,7 @@ namespace DigitalAgency.Bll.TelegramBot.Services.Menus
                         }
 
                         var dictKeys = new ConcurrentDictionary<string, string>();
+                        dictKeys.TryAdd("Create order", $"project:order:{thisProject.Id}");
                         dictKeys.TryAdd("Edit name", $"project:name:{thisProject.Id}");
                         dictKeys.TryAdd("Edit description", $"project:description:{thisProject.Id}");
                         dictKeys.TryAdd("Edit link", $"project:link:{thisProject.Id}");
@@ -217,6 +234,27 @@ namespace DigitalAgency.Bll.TelegramBot.Services.Menus
                     }
                     else
                     {
+                        if (entityActionId[1] == "order")
+                        { 
+                            var unnamedExecutor = await _clientMenuHelper.GetNullExecutor(); 
+                            var order = new Order
+                            {
+                                ClientId = client.Id, 
+                                ExecutorId = unnamedExecutor.Id, 
+                                ProjectId = thisProject.Id, 
+                                CreationDate = DateTimeOffset.Now, 
+                                StateEnum = OrderStateEnum.New
+                                
+                            };
+                            
+                            await _orderStorage.CreateOrderAsync(order);
+                            
+                            var dtfi = CultureInfo.GetCultureInfo("en-US").DateTimeFormat; 
+                            var calendarMarkup = KeyboardMessages.Calendar(DateTime.Today, dtfi, order,"order:");
+                            
+                            await _telegram.SendTextMessageAsync(client.ChatId, $"Please specify date", replyMarkup:calendarMarkup); 
+                            return;
+                        }
                         var action = new Action
                         {
                             EntityType = typeof(Project).ToString(),

@@ -1,4 +1,5 @@
 using System;
+using System.Text;
 using System.Threading.Tasks;
 using DigitalAgency.Bll.TelegramBot.Services.Interfaces;
 using DigitalAgency.Dal.Entities;
@@ -115,7 +116,7 @@ namespace DigitalAgency.Bll.TelegramBot.Services
             thisContact.FirstName = contactDetails.FirstName;
             thisContact.MiddleName = contactDetails.Username;
             thisContact.LastName = contactDetails.LastName;
-            thisContact.PhoneNumber = thisContact.PhoneNumber;
+            thisContact.PhoneNumber = Convert.ToBase64String(Encoding.UTF8.GetBytes(thisContact.PhoneNumber));
             thisContact.TelegramId = thisContact.TelegramId;
             thisContact.ChatId = message.Chat.Id;
             
@@ -135,7 +136,7 @@ namespace DigitalAgency.Bll.TelegramBot.Services
                 FirstName = contactDetails.FirstName,
                 MiddleName = contactDetails.Username,
                 LastName = contactDetails.LastName,
-                PhoneNumber = clientToExecutor.PhoneNumber,
+                PhoneNumber = Convert.ToBase64String(Encoding.UTF8.GetBytes(clientToExecutor.PhoneNumber)),
                 Position = PositionsEnum.Unknown,
                 TelegramId = clientToExecutor.TelegramId,
                 ChatId = message.Chat.Id

@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
 using AutoMapper;
 using DigitalAgency.Bll.TelegramBot.Models;
@@ -108,7 +109,6 @@ namespace DigitalAgency.Bll.TelegramBot.Services.Menus
             }
         }
         
-        //todo: implement
         public async Task ProcessCallBack(Executor executor, Update update)
         {
             var backKey = KeyboardMessages.DefaultKeyboardMessage(new[] {"Back"});
@@ -124,9 +124,11 @@ namespace DigitalAgency.Bll.TelegramBot.Services.Menus
                 var thisOrder = await _orderStorage.GetOrderAsync(x => x.Id.ToString() == update.CallbackQuery.Data);
                 
                 var mapped = _mapper.Map<BotShortOrderModel>(thisOrder);
+                var phoneNumber = Encoding.UTF8.GetString(Convert.FromBase64String(mapped.ClientPhone));
+                
                 var orderString = $"Project Name: {mapped.ProjectName}\n" +
                                   $"Client Name: {mapped.ClientName}\n" +
-                                  $"Client Phone: {mapped.ClientPhone}\n" +
+                                  $"Client Phone: {phoneNumber}\n" +
                                   $"Created at: {mapped.CreationDate}\n" +
                                   $"Due to: {mapped.ScheduledTime}\n" +
                                   $"State: {Enum.GetName(thisOrder.StateEnum)}\n";
@@ -149,7 +151,8 @@ namespace DigitalAgency.Bll.TelegramBot.Services.Menus
                     dictKeys.TryAdd("Edit End date", $"date:{thisOrder.Id}");
                     dictKeys.TryAdd("Back", "Back");
                     var editKeys = KeyboardMessages.DefaultInlineKeyboardMessage(dictKeys);
-                    await _telegram.SendContactAsync(chat, mapped.ClientPhone, mapped.ClientName, replyMarkup : editKeys);
+                    
+                    await _telegram.SendContactAsync(chat, phoneNumber, mapped.ClientName, replyMarkup : editKeys);
                 }
                 else
                 {
@@ -173,13 +176,19 @@ namespace DigitalAgency.Bll.TelegramBot.Services.Menus
                         await _orderStorage.UpdateAsync(thisOrder);
                         await _telegram.SendTextMessageAsync(chat,
                             "Successfully confirmed!\n\nPlease contact client at:");
+                        
                         await _telegram.SendTextMessageAsync(thisOrder.Client.ChatId,
                             $"Your order for {thisOrder.Project.ProjectName}" +
                             $" has been picked up by {executor.FirstName}!\n\nPlease contact him at:");
-                        await _telegram.SendContactAsync(thisOrder.Client.ChatId, executor.PhoneNumber,
+                        
+                        var executorPhoneNumber = Encoding.UTF8.GetString(Convert.FromBase64String(executor.PhoneNumber));
+                        var clientPhoneNumber = Encoding.UTF8.GetString(Convert.FromBase64String(thisOrder.Client.PhoneNumber));
+
+                        await _telegram.SendContactAsync(thisOrder.Client.ChatId, 
+                            executorPhoneNumber,
                             executor.FirstName);
 
-                        await _telegram.SendContactAsync(chat, thisOrder.Client.PhoneNumber, thisOrder.Client.FirstName,
+                        await _telegram.SendContactAsync(chat, clientPhoneNumber, thisOrder.Client.FirstName,
                             replyMarkup: backKey);
                         break;
                     }
@@ -196,15 +205,10 @@ namespace DigitalAgency.Bll.TelegramBot.Services.Menus
                     }
                     case "date" :
                     {
-                        //todo: implement
                         var dtfi = CultureInfo.GetCultureInfo("en-US").DateTimeFormat;
                         var calendarMarkup = KeyboardMessages.Calendar(DateTime.Today, dtfi, thisOrder);
 
-                        await _telegram.SendTextMessageAsync(
-                            chat,
-                            "Pick date:",
-                            replyMarkup: calendarMarkup
-                        );
+                        await _telegram.SendTextMessageAsync(chat, "Pick date:", replyMarkup: calendarMarkup);
                         break;
                     }
                     case "pck":

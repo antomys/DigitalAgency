@@ -32,7 +32,8 @@ public static class Row
             }
         }
 
-        public static IEnumerable<IEnumerable<InlineKeyboardButton>> Month(DateTime date, DateTimeFormatInfo dtfi, Order thisOrder)
+        public static IEnumerable<IEnumerable<InlineKeyboardButton>> Month(DateTime date, DateTimeFormatInfo dtfi, Order thisOrder, 
+            string additionalPayload = "")
         {
             var firstDayOfMonth = new DateTime(date.Year, date.Month+1, 1);
 
@@ -49,18 +50,16 @@ public static class Row
 
                 for (var dayOfWeek = 0; dayOfWeek < 7; dayOfWeek++)
                 {
-                    if ((weekNum == 0 && dayOfWeek < FirstDayOfWeek())
-                       ||
-                       dayOfMonth > lastDayOfMonth
-                    )
+                    if ((weekNum == 0 && dayOfWeek < FirstDayOfWeek()) || dayOfMonth > lastDayOfMonth)
                     {
                         week[dayOfWeek] = " ";
                         continue;
                     }
+                    
 //pck:2021/06/22:14
                     week[dayOfWeek] = InlineKeyboardButton.WithCallbackData(
                         dayOfMonth.ToString(),
-                        $"{Constants.PickDate}{date.Year}/{date.Month+1}/{dayOfMonth}:{thisOrder.Id}"
+                        $"{additionalPayload}{Constants.PickDate}{date.Year}/{date.Month+1}/{dayOfMonth}:{thisOrder.Id}"
                     );
 
                     dayOfMonth++;

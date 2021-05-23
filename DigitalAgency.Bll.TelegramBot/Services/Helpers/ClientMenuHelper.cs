@@ -17,14 +17,16 @@ namespace DigitalAgency.Bll.TelegramBot.Services.Helpers
     {
         private readonly IOrderStorage _orderStorage;
         private readonly IProjectStorage _projectStorage;
+        private readonly IExecutorStorage _executorStorage;
         private readonly IMapper _mapper;
 
         public ClientMenuHelper(IOrderStorage orderStorage, 
-            IProjectStorage projectStorage, IMapper mapper)
+            IProjectStorage projectStorage, IMapper mapper, IExecutorStorage executorStorage)
         {
             _orderStorage = orderStorage;
             _projectStorage = projectStorage;
             _mapper = mapper;
+            _executorStorage = executorStorage;
         }
         
         public async Task<List<BotShortOrderModel>> ViewClientOrders(Client thisClient)
@@ -40,6 +42,11 @@ namespace DigitalAgency.Bll.TelegramBot.Services.Helpers
             var executorOrders = await _projectStorage.GetProjectsAsync(x => x.OwnerId == thisClient.Id);
             
             return executorOrders;
+        }
+
+        public async Task<Executor> GetNullExecutor()
+        {
+            return await _executorStorage.GetExecutorAsync(x => x.FirstName == "NULL");
         }
         
         public Task<InlineKeyboardMarkup> ConstructClientOrderButtons(Update update, Order thisOrder)
