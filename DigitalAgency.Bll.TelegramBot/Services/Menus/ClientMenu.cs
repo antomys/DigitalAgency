@@ -132,12 +132,27 @@ namespace DigitalAgency.Bll.TelegramBot.Services.Menus
             var entityActionId = update.CallbackQuery.Data.Split(':');
             
             var entityId = entityActionId[^1];
-
+            
             switch (entityActionId[0])
             {
                 case "order":
                 {
                     var thisOrder = await _orderStorage.GetOrderAsync(x => x.Id.ToString() == entityId);
+                    
+                    if (entityActionId.Length>2 && Enum.TryParse<PositionsEnum>(entityActionId[1], out var parsedPosition))
+                    {
+                        thisOrder.ExecutorPosition = parsedPosition;
+
+                        await _orderStorage.UpdateAsync(thisOrder);
+
+                        var dtfi = CultureInfo.GetCultureInfo("en-US").DateTimeFormat; 
+                        var calendarMarkup = KeyboardMessages.Calendar(DateTime.Today, dtfi, thisOrder,"order:");
+                            
+                        await _telegram.SendTextMessageAsync(client.ChatId, $"Please specify date", replyMarkup:calendarMarkup); 
+                       
+                        return;
+                    }
+                    
                     if (entityActionId.Length == 2)
                     {
                         var orderString = $"Project Name: {thisOrder.Project.ProjectName}\n" +
@@ -161,7 +176,7 @@ namespace DigitalAgency.Bll.TelegramBot.Services.Menus
                         var editKeys = KeyboardMessages.DefaultInlineKeyboardMessage(dictKeys);
                         await _telegram.SendTextMessageAsync(chat, orderString, replyMarkup: editKeys);
                     }
-
+                    
                     switch (entityActionId[1])
                     {
                         case "delete":
@@ -247,15 +262,11 @@ namespace DigitalAgency.Bll.TelegramBot.Services.Menus
                                     ProjectId = thisProject.Id, 
                                     CreationDate = DateTimeOffset.Now, 
                                     StateEnum = OrderStateEnum.New
-                                
                                 };
                             
                                 await _orderStorage.CreateOrderAsync(order);
-                            
-                                var dtfi = CultureInfo.GetCultureInfo("en-US").DateTimeFormat; 
-                                var calendarMarkup = KeyboardMessages.Calendar(DateTime.Today, dtfi, order,"order:");
-                            
-                                await _telegram.SendTextMessageAsync(client.ChatId, $"Please specify date", replyMarkup:calendarMarkup); 
+
+                                await SendPosition(chat, order);
                                 return;
                             }
                             case "delete":
@@ -294,6 +305,20 @@ namespace DigitalAgency.Bll.TelegramBot.Services.Menus
                     break;
                 }
             }
+        }
+        
+        private async Task SendPosition(Chat chat, Order thisOrder)
+        {
+            var dictKeys = new ConcurrentDictionary<string, string>();
+            foreach (var position in Enum.GetNames(typeof(PositionsEnum))
+                .Where(x=> x != Enum.GetName(PositionsEnum.Unknown)))
+            {
+                dictKeys.TryAdd(position, $"order:{position}:{thisOrder.Id}");
+            }
+            var editKeys = KeyboardMessages.DefaultInlineKeyboardMessage(dictKeys);
+            
+            await _telegram.SendTextMessageAsync(chat, "Please choose executor position",
+                replyMarkup: editKeys);
         }
         public async Task ProcessReplyToMessage(Client client, Update update)
         {
@@ -352,7 +377,7 @@ namespace DigitalAgency.Bll.TelegramBot.Services.Menus
                 
                 return;
             }
-            
+            // for what this? Investigate!
             if (thisAction.EntityType == typeof(Client).ToString())
             {
                 

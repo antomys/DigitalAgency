@@ -156,6 +156,9 @@ namespace DigitalAgency.Dal.Migrations
                     b.Property<int?>("ExecutorId")
                         .HasColumnType("integer");
 
+                    b.Property<int>("ExecutorPosition")
+                        .HasColumnType("integer");
+
                     b.Property<int>("ProjectId")
                         .HasColumnType("integer");
 

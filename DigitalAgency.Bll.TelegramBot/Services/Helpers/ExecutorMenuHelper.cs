@@ -37,7 +37,9 @@ namespace DigitalAgency.Bll.TelegramBot.Services.Helpers
 
         public async Task<List<BotShortOrderModel>> ViewFreeOrders(Executor executor)
         {
-            var executorOrders = await _orderStorage.GetOrdersAsync(x => x.Executor.PhoneNumber == "NULL");
+            var executorOrders = await _orderStorage
+                .GetOrdersAsync(x => x.Executor.PhoneNumber == "NULL" 
+                                     &&  x.ExecutorPosition == executor.Position);
             
             var mapped = _mapper.Map<List<Order>,List<BotShortOrderModel>>(executorOrders);
 

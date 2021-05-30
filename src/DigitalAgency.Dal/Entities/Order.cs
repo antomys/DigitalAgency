@@ -18,6 +18,7 @@ namespace DigitalAgency.Dal.Entities
         public int? ExecutorId { get; set; }
         [ForeignKey("ExecutorId")]
         public virtual Executor Executor { get; set; }
+        public PositionsEnum ExecutorPosition { get; set; }
         public int ProjectId { get; set; }
         [ForeignKey("ProjectId")]
         public virtual Project Project { get; set; }

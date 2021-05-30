@@ -10,8 +10,8 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace DigitalAgency.Dal.Migrations
 {
     [DbContext(typeof(ServicingContext))]
-    [Migration("20210523114452_NewActionTable")]
-    partial class NewActionTable
+    [Migration("20210530000049_enumfix")]
+    partial class enumfix
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
@@ -39,6 +39,12 @@ namespace DigitalAgency.Dal.Migrations
 
                     b.Property<int>("EntityId")
                         .HasColumnType("integer");
+
+                    b.Property<string>("EntityType")
+                        .HasColumnType("text");
+
+                    b.Property<bool>("IsDone")
+                        .HasColumnType("boolean");
 
                     b.HasKey("Id");
 
@@ -150,6 +156,9 @@ namespace DigitalAgency.Dal.Migrations
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<int?>("ExecutorId")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("ExecutorPosition")
                         .HasColumnType("integer");
 
                     b.Property<int>("ProjectId")

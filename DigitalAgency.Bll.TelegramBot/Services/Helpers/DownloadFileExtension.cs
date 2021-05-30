@@ -21,6 +21,8 @@ namespace DigitalAgency.Bll.TelegramBot.Services.Helpers
                 var file = await _telegram.GetFileAsync(fileId);
                 var path = System.IO.Path.Combine(Path, System.IO.Path.GetFileName(file.FilePath)!);
 
+                if (!Directory.Exists(Path))
+                    Directory.CreateDirectory(Path);
                 await using var saveImageStream = new FileStream(path, FileMode.OpenOrCreate);
                 await _telegram.DownloadFileAsync(file.FilePath, saveImageStream);
 
