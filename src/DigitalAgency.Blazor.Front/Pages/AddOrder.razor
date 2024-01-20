@@ -1,38 +1,37 @@
 ﻿@page "/addorder"
-@using System.Text
+@using JsonSerializer = System.Text.Json.JsonSerializer
+@using Task = System.Threading.Tasks.Task
 @using DigitalAgency.Bll.Models
 @using DigitalAgency.Bll.Models.Enums
 @using Newtonsoft.Json
-@using JsonSerializer = System.Text.Json.JsonSerializer
-@using Task = System.Threading.Tasks.Task
+@using System.Text
 @inject IHttpClientFactory _clientFactory;
 @inject NavigationManager _navigationManager
 
 
-
-<link rel="stylesheet" href="css/bootstrap/bootstrap.min.css" />
-<link href="css/site.css" rel="stylesheet" />
+<link rel="stylesheet" href="css/bootstrap/bootstrap.min.css"/>
+<link href="css/site.css" rel="stylesheet"/>
 
 
 <h1>Add new order</h1>
-@if(Clients == null 
-    || Executors == null 
-    || Projects == null)  
-{  
-<p>  
-    <em>Loading ...</em>  
-</p>  
+@if (Clients == null
+     || Executors == null
+     || Projects == null)
+{
+    <p>
+        <em>Loading ...</em>
+    </p>
 }
 else
 {
-    <p />
+    <p/>
 
     <table>
         <tr>
             <td>Client: </td>
             <select class="custom-select" @onchange="OnClientValueChanged" title="Region is required ">
                 <option value="Select" selected disabled="disabled">Choose Owner</option>
-                @foreach (var client in Clients)
+                @foreach (ClientModel client in Clients)
                 {
                     <option value="@client.Id">@client.FirstName @client.LastName</option>
                 }
@@ -42,17 +41,17 @@ else
             <td>Project: </td>
             <select class="custom-select" @onchange="OnProjectValueChanged" title="Region is required ">
                 <option value="Select" selected disabled="disabled">Choose Project</option>
-                @foreach (var car in Projects)
+                @foreach (ProjectModel car in Projects)
                 {
                     <option value="@car.Id">@car.ProjectName @car.ProjectDescription</option>
                 }
-            </select> 
+            </select>
         </tr>
         <tr>
             <td>Executor: </td>
             <select class="custom-select" @onchange="OnExecutorValueChanged" title="Region is required ">
                 <option value="Select" selected disabled="disabled">Choose Executor</option>
-                @foreach (var client in Executors)
+                @foreach (ExecutorModel client in Executors)
                 {
                     <option value="@client.Id">@client.FirstName @client.LastName</option>
                 }
@@ -64,98 +63,104 @@ else
         </tr>
     </table>
 }
-    <p />
-    <a class="btn btn-secondary" href="orders">Back</a>
-    <button type="button" class="btn btn-primary" @onclick="AddNewOrder">&#10004;Add</button> @Alert
-    <p />
+<p/>
+<a class="btn btn-secondary" href="orders">Back</a>
+<button type="button" class="btn btn-primary" @onclick="AddNewOrder">&#10004;Add</button> @Alert
+<p/>
 
 @code {
     protected List<ClientModel> Clients { get; set; }
-    protected List<ExecutorModel> Executors{get; set; }
+    protected List<ExecutorModel> Executors { get; set; }
     protected List<ProjectModel> Projects { get; set; }
     protected string Alert { get; set; }
-    
-    [Parameter]
-    public DateTimeOffset ScheduledDate { get; set; }
-    [Parameter]  
-    public EventCallback < DateTimeOffset> DateChanged { get; set; } 
-    
-    [Parameter]  
-    public string ValueClient { get; set; }  
-    [Parameter]  
-    public EventCallback < string > ValueClientChanged { get; set; }  
-    
-    [Parameter]  
-    public string ValueExecutor { get; set; }  
-    [Parameter]  
-    public EventCallback < string > ValueExecutorChanged { get; set; }  
-    
-    [Parameter]  
-    public string ValueProject { get; set; }  
-    [Parameter]  
-    public EventCallback < string > ValueProjectChanged { get; set; }  
 
-    protected override async Task OnInitializedAsync()
+    [Parameter] public DateTimeOffset ScheduledDate { get; set; }
+
+    [Parameter] public EventCallback<DateTimeOffset> DateChanged { get; set; }
+
+    [Parameter] public string ValueClient { get; set; }
+
+    [Parameter] public EventCallback<string> ValueClientChanged { get; set; }
+
+    [Parameter] public string ValueExecutor { get; set; }
+
+    [Parameter] public EventCallback<string> ValueExecutorChanged { get; set; }
+
+    [Parameter] public string ValueProject { get; set; }
+
+    [Parameter] public EventCallback<string> ValueProjectChanged { get; set; }
+
+    override protected async Task OnInitializedAsync()
     {
-        var client = _clientFactory.CreateClient();
-        var result = await client.GetAsync("http://localhost:8443/Client/GetClient");
+        HttpClient client = _clientFactory.CreateClient();
+        HttpResponseMessage result = await client.GetAsync("http://localhost:8443/Client/GetClient");
 
-        var info = await result.Content.ReadAsStringAsync();
+        string info = await result.Content.ReadAsStringAsync();
         ScheduledDate = DateTimeOffset.Now;
-        var deserialized = JsonConvert.DeserializeObject<List<ClientModel>>(info);
+        List<ClientModel> deserialized = JsonConvert.DeserializeObject<List<ClientModel>>(info);
         Clients = deserialized?.ToList();
         ScheduledDate = DateTimeOffset.Now;
 
         result = await client.GetAsync("http://localhost:8443/Client/GetExecutor");
         info = await result.Content.ReadAsStringAsync();
-        var newDeserialized = JsonConvert.DeserializeObject<List<ExecutorModel>>(info);
-        Executors = newDeserialized?.Where(x=>x.FirstName!="NULL").ToList();
+        List<ExecutorModel> newDeserialized = JsonConvert.DeserializeObject<List<ExecutorModel>>(info);
+        Executors = newDeserialized?.Where(x => x.FirstName != "NULL").ToList();
         ValueExecutor = newDeserialized?.FirstOrDefault(x => x.FirstName == "NULL")?.Id.ToString();
-        
+
         Projects = new List<ProjectModel>();
     }
-    
-    private Task OnClientValueChanged(ChangeEventArgs e) {  
-        ValueClient = e.Value.ToString();  
-         
-        var client = _clientFactory.CreateClient();
-        var result = client.GetAsync("http://localhost:8443/Project/GetProject").Result;
-        var info = result.Content.ReadAsStringAsync().Result;
-        var newDeserialized = JsonConvert.DeserializeObject<List<ProjectModel>>(info);
-        Projects = newDeserialized?.Where(x=> x.Client.Id.ToString() == ValueClient).ToList();
-        return ValueClientChanged.InvokeAsync(ValueClient); 
-    }  
-    private Task OnExecutorValueChanged(ChangeEventArgs e) {  
+
+    private Task OnClientValueChanged(ChangeEventArgs e)
+    {
+        ValueClient = e.Value.ToString();
+
+        HttpClient client = _clientFactory.CreateClient();
+        HttpResponseMessage result = client.GetAsync("http://localhost:8443/Project/GetProject").Result;
+        string info = result.Content.ReadAsStringAsync().Result;
+        List<ProjectModel> newDeserialized = JsonConvert.DeserializeObject<List<ProjectModel>>(info);
+        Projects = newDeserialized?.Where(x => x.Client.Id.ToString() == ValueClient).ToList();
+        return ValueClientChanged.InvokeAsync(ValueClient);
+    }
+
+    private Task OnExecutorValueChanged(ChangeEventArgs e)
+    {
         ValueExecutor = e.Value.ToString();
-        return ValueExecutorChanged.InvokeAsync(ValueExecutor); 
-    }  
-    private Task OnProjectValueChanged(ChangeEventArgs e) {  
+        return ValueExecutorChanged.InvokeAsync(ValueExecutor);
+    }
+
+    private Task OnProjectValueChanged(ChangeEventArgs e)
+    {
         ValueProject = e.Value.ToString();
-        return ValueProjectChanged.InvokeAsync(ValueProject); 
-    } 
+        return ValueProjectChanged.InvokeAsync(ValueProject);
+    }
 
     protected async Task AddNewOrder()
     {
         Alert = " ";
-        var client = _clientFactory.CreateClient();
+        HttpClient client = _clientFactory.CreateClient();
         if (ValueClient == null || ValueProject == null)
         {
             Alert = "Fill all fields!";
             return;
         }
-        
-        var serviceOrder = new OrderModel
-        {
-            Client = new ClientModel{Id = int.Parse(ValueClient)},
-            Executor = int.TryParse(ValueExecutor, out var id)? new ExecutorModel{Id = id} : null,
-            Project = new ProjectModel{Id = int.Parse(ValueProject)},
+
+        OrderModel serviceOrder = new OrderModel {
+            Client = new ClientModel {
+                Id = int.Parse(ValueClient),
+            },
+            Executor = int.TryParse(ValueExecutor, out int id) ? new ExecutorModel {
+                Id = id,
+            } : null,
+            Project = new ProjectModel {
+                Id = int.Parse(ValueProject),
+            },
             ScheduledTime = ScheduledDate,
             CreationDate = DateTimeOffset.Now,
-            StateEnum = OrderStateEnum.New
+            StateEnum = OrderStateEnum.New,
         };
-        var content = new StringContent(JsonSerializer.Serialize(serviceOrder), Encoding.UTF8, "application/json");
-        var response =  await client.PostAsync("http://localhost:8443/Order/CreateOrder", content);
-        
+        StringContent content = new(JsonSerializer.Serialize(serviceOrder), Encoding.UTF8, "application/json");
+        HttpResponseMessage response = await client.PostAsync("http://localhost:8443/Order/CreateOrder", content);
+
         if (response.IsSuccessStatusCode)
         {
             Alert = "Added new order";
@@ -166,4 +171,5 @@ else
             Alert = await response.Content.ReadAsStringAsync();
         }
     }
+
 }

@@ -1,93 +1,91 @@
 ﻿@page "/orders"
-@using Newtonsoft.Json
 @using Task = System.Threading.Tasks.Task
-@using DigitalAgency.Bll.Models
 @using OrderStateEnum = DigitalAgency.Dal.Entities.Enums.OrderStateEnum
+@using DigitalAgency.Bll.Models
+@using Newtonsoft.Json
 @inject IHttpClientFactory _clientFactory;
 
 
 <h1>Service order</h1>
-<p />
+<p/>
 <a class="btn btn-primary" href="addOrder">&#10002;Add order</a>
 
-<p />
+<p/>
 @if (OrdersList == null)
 {
     <div>Loading...</div>
 }
 else
 {
-
     <table class="table">
         <thead>
-            <tr>
-                <td>Id</td>
-                <td>Client Name</td>
-                <td>Executor Name</td>
-                <td>Executor Position</td>
-                <td>Project</td>
-                <td>Creation date </td>
-                <td>Scheduled time</td>
-                <td>State</td>
+        <tr>
+            <td>Id</td>
+            <td>Client Name</td>
+            <td>Executor Name</td>
+            <td>Executor Position</td>
+            <td>Project</td>
+            <td>Creation date </td>
+            <td>Scheduled time</td>
+            <td>State</td>
 
-            </tr>
+        </tr>
         </thead>
         <tbody>
 
-            @foreach (var order in OrdersList)
-            {
-                <tr>
-                    <td>@order.Id</td>
-                    <td>@order.Client.FirstName</td>
-                    @if (order.Executor == null)
-                    {
-                        <td></td>
-                        <td></td>
-                    }
-                    else
-                    {
-                        <td>@order.Executor.FirstName</td>
-                        <td>@order.Executor.Position</td>
-                    }
-  
-                    <td>@order.Project.ProjectName</td>
-                    <td>@order.CreationDate</td>
-                    <td>@order.ScheduledTime</td>
-                    <td>@Enum.Parse(typeof(OrderStateEnum),order.StateEnum.ToString())</td>
-                    <td>
-                        <a class="nav-link" href="editOrder/@order.Id">
-                            <span class="oi oi-pencil" aria-hidden="true"></span>Edit
-                        </a>
-                    </td>
-                </tr>
+        @foreach (OrderModel order in OrdersList)
+        {
+            <tr>
+                <td>@order.Id</td>
+                <td>@order.Client.FirstName</td>
+                @if (order.Executor == null)
+                {
+                    <td></td>
+                    <td></td>
+                }
+                else
+                {
+                    <td>@order.Executor.FirstName</td>
+                    <td>@order.Executor.Position</td>
+                }
 
-            }
+                <td>@order.Project.ProjectName</td>
+                <td>@order.CreationDate</td>
+                <td>@order.ScheduledTime</td>
+                <td>@Enum.Parse(typeof(OrderStateEnum), order.StateEnum.ToString())</td>
+                <td>
+                    <a class="nav-link" href="editOrder/@order.Id">
+                        <span class="oi oi-pencil" aria-hidden="true"></span>Edit
+                    </a>
+                </td>
+            </tr>
+        }
 
         </tbody>
     </table>
 }
+
 @code {
 
     private List<OrderModel> OrdersList { get; set; }
 
     private string _info;
 
-    protected override async Task OnInitializedAsync()
+    override protected async Task OnInitializedAsync()
     {
-        var client = _clientFactory.CreateClient();
-        var result = await client.GetAsync("http://localhost:8443/Order/GetOrder");
+        HttpClient client = _clientFactory.CreateClient();
+        HttpResponseMessage result = await client.GetAsync("http://localhost:8443/Order/GetOrder");
 
         _info = await result.Content.ReadAsStringAsync();
-        var deserialized = JsonConvert.DeserializeObject<List<OrderModel>>(_info);
-        if(deserialized != null)
-            foreach (var des in deserialized.Where(des => des.Executor == null))
+        List<OrderModel> deserialized = JsonConvert.DeserializeObject<List<OrderModel>>(_info);
+        if (deserialized != null)
+            foreach (OrderModel des in deserialized.Where(des => des.Executor == null))
             {
-                des.Executor = new ExecutorModel
-                {
-                    FirstName = string.Empty,
-                    Position = 0
+                des.Executor = new ExecutorModel {
+                    FirstName = string.Empty, Position = 0,
                 };
             }
         OrdersList = JsonConvert.DeserializeObject<List<OrderModel>>(_info);
     }
+
 }

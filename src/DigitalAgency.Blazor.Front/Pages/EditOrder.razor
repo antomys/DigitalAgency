@@ -1,16 +1,15 @@
 ﻿@page "/editOrder/{id}"
-@using System.Text
-@using DigitalAgency.Bll.Models
-@using DigitalAgency.Bll.Models.Enums
-@using Microsoft.AspNetCore.Components
-@using Newtonsoft.Json
 @using JsonSerializer = System.Text.Json.JsonSerializer
 @using Task = System.Threading.Tasks.Task
+@using DigitalAgency.Bll.Models
+@using DigitalAgency.Bll.Models.Enums
+@using Newtonsoft.Json
+@using System.Text
 @inject IHttpClientFactory _clientFactory;
 
 
-<link rel="stylesheet" href="css/bootstrap/bootstrap.min.css" />
-<link href="css/site.css" rel="stylesheet" />
+<link rel="stylesheet" href="css/bootstrap/bootstrap.min.css"/>
+<link href="css/site.css" rel="stylesheet"/>
 
 @if (Order == null || Executors == null)
 {
@@ -18,133 +17,138 @@
 }
 else
 {
-<h1>Update order</h1>
-<p />
-<table>
-    <div class="form-group">
-        <input for="Name" disabled="true"class="form-control" @bind="@Order.Id" />
-    </div>
-    <tr>
-        <td>Client:</td>
-        <td><input disabled="true" @bind="Order.Client.FirstName" /></td>
-    </tr>
-    <tr>
-        <td>Project name</td>
-        <td><input disabled="true"@bind="Order.Project.ProjectName"/></td>
-    </tr>
-    <tr>
-        <td>Executor: </td>
-        <select class="custom-select" @onchange="OnExecutorValueChanged" title="Select Executor">
-            <option value="Select" selected disabled="disabled"> </option>
-            @foreach (var client in Executors)
-            {
-                <option value="@client.Id">@client.FirstName @client.LastName</option>
-            }
-        </select>
-    </tr>
-    <tr>
-        <td>Scheduled date</td>
-        <input type="date" @onchange="@OnDateValueChanged"/>
-    </tr>
-    <tr>
-        <td>State</td>
-        <select class="custom-select" @onchange="OnStateValueChanged" title="Select State">
-            <option value="Select" selected disabled="disabled">@Enum.GetName(Order.StateEnum)</option>
-            @foreach (var state in Enum.GetNames(typeof(OrderStateEnum)))
-            {
-                <option value="@state">@state</option>
-            }
-        </select>
-    </tr>
-</table>
-<p />
-<a class="btn btn-secondary" href="orders">Back</a>
-<button type="button" class="btn btn-primary" @onclick="@PutOrder">&#10004;Save</button> @Alert
-<p />
+    <h1>Update order</h1>
+    <p/>
+    <table>
+        <div class="form-group">
+            <input for="Name" disabled="true"class="form-control" @bind="@Order.Id"/>
+        </div>
+        <tr>
+            <td>Client:</td>
+            <td>
+                <input disabled="true" @bind="Order.Client.FirstName"/>
+            </td>
+        </tr>
+        <tr>
+            <td>Project name</td>
+            <td>
+                <input disabled="true"@bind="Order.Project.ProjectName"/>
+            </td>
+        </tr>
+        <tr>
+            <td>Executor: </td>
+            <select class="custom-select" @onchange="OnExecutorValueChanged" title="Select Executor">
+                <option value="Select" selected disabled="disabled"> </option>
+                @foreach (ExecutorModel client in Executors)
+                {
+                    <option value="@client.Id">@client.FirstName @client.LastName</option>
+                }
+            </select>
+        </tr>
+        <tr>
+            <td>Scheduled date</td>
+            <input type="date" @onchange="@OnDateValueChanged"/>
+        </tr>
+        <tr>
+            <td>State</td>
+            <select class="custom-select" @onchange="OnStateValueChanged" title="Select State">
+                <option value="Select" selected disabled="disabled">@Enum.GetName(Order.StateEnum)</option>
+                @foreach (string state in Enum.GetNames(typeof(OrderStateEnum)))
+                {
+                    <option value="@state">@state</option>
+                }
+            </select>
+        </tr>
+    </table>
+    <p/>
+    <a class="btn btn-secondary" href="orders">Back</a>
+    <button type="button" class="btn btn-primary" @onclick="@PutOrder">&#10004;Save</button>
+    @Alert
+    <p/>
 }
 
 @code {
-    
+
     protected OrderModel Order { get; set; }
-    protected List<ExecutorModel> Executors{get; set; }
+    protected List<ExecutorModel> Executors { get; set; }
     protected OrderStateEnum State { get; set; }
     protected string Alert { get; set; }
-    
-    [Parameter]
-    public DateTimeOffset ValueScheduledDate { get; set; }
-    [Parameter]  
-    public EventCallback <DateTimeOffset> DateChanged { get; set; } 
 
-    [Parameter]
-    public string Id { get; set; }
-    
-    [Parameter]  
-    public string ValueExecutor { get; set; }  
-    [Parameter]  
-    public EventCallback <string> ValueExecutorChanged { get; set; }  
-    
-    [Parameter]  
-    public OrderStateEnum ValueState { get; set; }  
-    [Parameter]  
-    public EventCallback <OrderStateEnum> ValueStateChanged { get; set; }  
-    
-    
+    [Parameter] public DateTimeOffset ValueScheduledDate { get; set; }
+
+    [Parameter] public EventCallback<DateTimeOffset> DateChanged { get; set; }
+
+    [Parameter] public string Id { get; set; }
+
+    [Parameter] public string ValueExecutor { get; set; }
+
+    [Parameter] public EventCallback<string> ValueExecutorChanged { get; set; }
+
+    [Parameter] public OrderStateEnum ValueState { get; set; }
+
+    [Parameter] public EventCallback<OrderStateEnum> ValueStateChanged { get; set; }
+
+
     private Task OnExecutorValueChanged(ChangeEventArgs e)
     {
         ValueExecutor = e.Value.ToString();
-        return ValueExecutorChanged.InvokeAsync(ValueExecutor); 
-    }  
-    private Task OnStateValueChanged(ChangeEventArgs e) {
-        Enum.TryParse(typeof(OrderStateEnum), e.Value.ToString(), true, out var tempPosition);
-        ValueState =  (OrderStateEnum) (Enum.IsDefined(typeof(OrderStateEnum), tempPosition)
+        return ValueExecutorChanged.InvokeAsync(ValueExecutor);
+    }
+
+    private Task OnStateValueChanged(ChangeEventArgs e)
+    {
+        Enum.TryParse(typeof(OrderStateEnum), e.Value.ToString(), true, out object tempPosition);
+        ValueState = (OrderStateEnum)(Enum.IsDefined(typeof(OrderStateEnum), tempPosition)
             ? tempPosition
             : 0);
-        return ValueStateChanged.InvokeAsync(ValueState); 
+        return ValueStateChanged.InvokeAsync(ValueState);
     }
-    
-    private Task OnDateValueChanged(ChangeEventArgs e) {  
-        ValueScheduledDate = DateTimeOffset.Parse(e.Value.ToString());
-        return DateChanged.InvokeAsync(ValueScheduledDate); 
-    }  
-    
-    protected override async Task OnInitializedAsync()
-    {
-        var client = _clientFactory.CreateClient();
-        var result = await client.GetAsync("http://localhost:8443/Order/GetOrder");
 
-        var info = await result.Content.ReadAsStringAsync();
-        
-        var deserialized = JsonConvert.DeserializeObject<List<OrderModel>>(info);
-        Order = deserialized?.First(x=> x.Id.ToString() == Id);
+    private Task OnDateValueChanged(ChangeEventArgs e)
+    {
+        ValueScheduledDate = DateTimeOffset.Parse(e.Value.ToString());
+        return DateChanged.InvokeAsync(ValueScheduledDate);
+    }
+
+    override protected async Task OnInitializedAsync()
+    {
+        HttpClient client = _clientFactory.CreateClient();
+        HttpResponseMessage result = await client.GetAsync("http://localhost:8443/Order/GetOrder");
+
+        string info = await result.Content.ReadAsStringAsync();
+
+        List<OrderModel> deserialized = JsonConvert.DeserializeObject<List<OrderModel>>(info);
+        Order = deserialized?.First(x => x.Id.ToString() == Id);
         ValueScheduledDate = Order.ScheduledTime.Date;
         State = Order.StateEnum;
-        
+
         result = await client.GetAsync("http://localhost:8443/Client/GetExecutor");
         info = await result.Content.ReadAsStringAsync();
-        var newDeserialized = JsonConvert.DeserializeObject<List<ExecutorModel>>(info);
+        List<ExecutorModel> newDeserialized = JsonConvert.DeserializeObject<List<ExecutorModel>>(info);
         Executors = newDeserialized?.ToList();
     }
-    
+
     protected async Task PutOrder()
     {
         Alert = " ";
-        var client = _clientFactory.CreateClient();
-        
-        var serviceOrder = new OrderModel
-        {
+        HttpClient client = _clientFactory.CreateClient();
+
+        OrderModel serviceOrder = new OrderModel {
             Id = int.Parse(Id),
             Client = Order.Client,
-            Executor = new ExecutorModel{Id = int.Parse(ValueExecutor)},
+            Executor = new ExecutorModel {
+                Id = int.Parse(ValueExecutor),
+            },
             Project = Order.Project,
             CreationDate = Order.CreationDate,
-            StateEnum = State
+            StateEnum = State,
         };
 
         serviceOrder.ScheduledTime = ValueScheduledDate;
-        
-        var content = new StringContent(JsonSerializer.Serialize(serviceOrder), Encoding.UTF8, "application/json");
-        var response =  await client.PutAsync("http://localhost:8443/Order/UpdateOrder", content);
-        
+
+        StringContent content = new StringContent(JsonSerializer.Serialize(serviceOrder), Encoding.UTF8, "application/json");
+        HttpResponseMessage response = await client.PutAsync("http://localhost:8443/Order/UpdateOrder", content);
+
         if (response.IsSuccessStatusCode)
         {
             Alert = "Edited order";
@@ -154,4 +158,5 @@ else
             Alert = await response.Content.ReadAsStringAsync();
         }
     }
+
 }

@@ -9,66 +9,64 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 
-namespace DigitalAgency.Api.Common
+namespace DigitalAgency.Api.Common;
+
+public class CustomExceptionHandlerMiddleware
 {
-    public class CustomExceptionHandlerMiddleware
+    readonly ILogger<CustomExceptionHandlerMiddleware> _logger;
+    readonly RequestDelegate _next;
+
+    public CustomExceptionHandlerMiddleware(RequestDelegate next, ILogger<CustomExceptionHandlerMiddleware> logger)
     {
-        private readonly RequestDelegate _next;
-        private readonly ILogger<CustomExceptionHandlerMiddleware> _logger;
+        _next = next;
+        _logger = logger;
+    }
 
-        public CustomExceptionHandlerMiddleware(RequestDelegate next, ILogger<CustomExceptionHandlerMiddleware> logger)
+    public async Task Invoke(HttpContext context)
+    {
+        try
         {
-            _next = next;
-            _logger = logger;
+            await _next(context);
         }
-
-        public async Task Invoke(HttpContext context)
+        catch (Exception ex)
         {
-
-            try
-            {
-                await _next(context);
-            }
-            catch (Exception ex)
-            {
-                await HandleExceptionAsync(context, ex);
-            }
-
-        }
-
-        private Task HandleExceptionAsync(HttpContext context, Exception exception)
-        {
-            _logger.LogInformation("Star logging - method HandleExceptionAsync ");
-            var code = HttpStatusCode.InternalServerError;
-            var result = JsonConvert.SerializeObject(new { error = exception.Message });
-
-            switch (exception)
-            {
-                case ValidationException validationException:
-                    code = HttpStatusCode.BadRequest;
-                    result = JsonConvert.SerializeObject(validationException.Source);
-                    break;
-            }
-
-            _logger.LogInformation("Star logging - method HandleExceptionAsync ");
-
-            if (exception is KeyNotFoundException) code = HttpStatusCode.NotFound;
-            else if (exception is DbException) code = HttpStatusCode.BadRequest;
-            else code = HttpStatusCode.BadRequest;
-            _logger.LogDebug($"Time request{DateTime.UtcNow}\n{exception.Message}");
-           
-            context.Response.ContentType = "application/json";
-            context.Response.StatusCode = (int)code;
-            return context.Response.WriteAsync(result);
+            await HandleExceptionAsync(context, ex);
         }
     }
 
-    public static class CustomExceptionHandlerMiddlewareExtensions
+    Task HandleExceptionAsync(HttpContext context, Exception exception)
     {
-        public static IApplicationBuilder UseCustomExceptionHandler(this IApplicationBuilder builder)
-        {
+        _logger.LogInformation("Star logging - method HandleExceptionAsync ");
+        HttpStatusCode code = HttpStatusCode.InternalServerError;
+        string result = JsonConvert.SerializeObject(new {
+            error = exception.Message,
+        });
 
-            return builder.UseMiddleware<CustomExceptionHandlerMiddleware>();
+        switch (exception)
+        {
+            case ValidationException validationException:
+                code = HttpStatusCode.BadRequest;
+                result = JsonConvert.SerializeObject(validationException.Source);
+                break;
         }
+
+        _logger.LogInformation("Star logging - method HandleExceptionAsync ");
+
+        if (exception is KeyNotFoundException) code = HttpStatusCode.NotFound;
+        else if (exception is DbException) code = HttpStatusCode.BadRequest;
+        else code = HttpStatusCode.BadRequest;
+        _logger.LogDebug($"Time request{DateTime.UtcNow}\n{exception.Message}");
+
+        context.Response.ContentType = "application/json";
+        context.Response.StatusCode = (int)code;
+        return context.Response.WriteAsync(result);
+    }
+}
+
+public static class CustomExceptionHandlerMiddlewareExtensions
+{
+    public static IApplicationBuilder UseCustomExceptionHandler(this IApplicationBuilder builder)
+    {
+        return builder.UseMiddleware<CustomExceptionHandlerMiddleware>();
     }
 }

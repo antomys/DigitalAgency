@@ -1,79 +1,86 @@
 @page "/addexecutor"
-@using Newtonsoft.Json
-@using System.Text
-@using DigitalAgency.Bll.Models
-@using DigitalAgency.Bll.Models.Enums
 @using Task = System.Threading.Tasks.Task
+@using DigitalAgency.Bll.Models.Enums
+@using Newtonsoft.Json
+@using DigitalAgency.Bll.Models
+@using System.Text
 @inject NavigationManager _navigationManager
 @inject IHttpClientFactory _executorFactory;
 
 
-<link rel="stylesheet" href="css/bootstrap/bootstrap.min.css" />
-<link href="css/site.css" rel="stylesheet" />
+<link rel="stylesheet" href="css/bootstrap/bootstrap.min.css"/>
+<link href="css/site.css" rel="stylesheet"/>
 <h1>Add new executor</h1>
-<p />
+<p/>
 <table>
     <tr>
         <td>First name:</td>
-        <td><input @bind="FirstName"/></td>
+        <td>
+            <input @bind="FirstName"/>
+        </td>
     </tr>
     <tr>
         <td>Middle name:</td>
-        <td><input @bind="MiddleName"/></td>
+        <td>
+            <input @bind="MiddleName"/>
+        </td>
     </tr>
     <tr>
         <td>Last name:</td>
-        <td><input @bind="LastName"/></td>
+        <td>
+            <input @bind="LastName"/>
+        </td>
     </tr>
     <tr>
         <td>Phone number:</td>
-        <td><input @bind="PhoneNumber"/></td>
+        <td>
+            <input @bind="PhoneNumber"/>
+        </td>
     </tr>
     <tr>
         <td>Position:</td>
         <select class="custom-select" @onchange="OnPositionValueChanged" title="Region is required ">
             <option value="Select" selected disabled="disabled">Choose Position</option>
-            @foreach (var car in Enum.GetNames(typeof(PositionsEnum)))
+            @foreach (string car in Enum.GetNames(typeof(PositionsEnum)))
             {
                 <option value="@car">@car</option>
             }
         </select>
     </tr>
 </table>
-<p />
+<p/>
 <div class="col-sm-3">
-        <a class="btn btn-secondary" href="executors">Back</a>
-        <button class="btn btn-primary" @onclick="AddNewMechanic">&#10004;Add</button> 
-        </div>
+    <a class="btn btn-secondary" href="executors">Back</a>
+    <button class="btn btn-primary" @onclick="AddNewMechanic">&#10004;Add</button>
+</div>
 <div class="col-sm-9">
     <span>@Alert</span>
 </div>
-<p />
+<p/>
 
 
-@code 
+@code
 {
     private string FirstName { get; set; }
     private string MiddleName { get; set; }
     private string LastName { get; set; }
     private string PhoneNumber { get; set; }
     private string Alert { get; set; }
-    
-    [Parameter]  
-    public PositionsEnum ValuePosition { get; set; }
-    [Parameter]  
-    public EventCallback < PositionsEnum > ValuePositionChanged { get; set; }  
-    
+
+    [Parameter] public PositionsEnum ValuePosition { get; set; }
+
+    [Parameter] public EventCallback<PositionsEnum> ValuePositionChanged { get; set; }
+
     private Task OnPositionValueChanged(ChangeEventArgs e)
     {
-        Enum.TryParse(typeof(PositionsEnum), e.Value.ToString(), true, out var tempPosition);
-        ValuePosition =  (PositionsEnum) (Enum.IsDefined(typeof(PositionsEnum), tempPosition)
+        Enum.TryParse(typeof(PositionsEnum), e.Value.ToString(), true, out object tempPosition);
+        ValuePosition = (PositionsEnum)(Enum.IsDefined(typeof(PositionsEnum), tempPosition)
             ? tempPosition
             : 0);
         return ValuePositionChanged.InvokeAsync(ValuePosition);
     }
 
-    protected override void OnInitialized()
+    override protected void OnInitialized()
     {
         ValuePosition = 0;
     }
@@ -81,24 +88,23 @@
     protected async Task AddNewMechanic()
     {
         Alert = string.Empty;
-        if (FirstName == string.Empty 
-            || MiddleName == string.Empty 
-            || LastName == string.Empty 
+        if (FirstName == string.Empty
+            || MiddleName == string.Empty
+            || LastName == string.Empty
             || PhoneNumber == string.Empty)
         {
             Alert = "Fill all fields!";
         }
-        var executorFactory = _executorFactory.CreateClient();
-        var executor = new ExecutorModel
-        {
-            FirstName = FirstName, 
-            MiddleName = MiddleName, 
-            LastName = LastName, 
-            PhoneNumber = PhoneNumber, 
-            Position = ValuePosition
+        HttpClient executorFactory = _executorFactory.CreateClient();
+        ExecutorModel executor = new ExecutorModel {
+            FirstName = FirstName,
+            MiddleName = MiddleName,
+            LastName = LastName,
+            PhoneNumber = PhoneNumber,
+            Position = ValuePosition,
         };
-        var content = new StringContent(JsonConvert.SerializeObject(executor), Encoding.UTF8, "application/json");
-        var response = await executorFactory.PostAsync("http://localhost:8443/Client/PostExecutor", content);
+        StringContent content = new StringContent(JsonConvert.SerializeObject(executor), Encoding.UTF8, "application/json");
+        HttpResponseMessage response = await executorFactory.PostAsync("http://localhost:8443/Client/PostExecutor", content);
 
         if (response.IsSuccessStatusCode)
         {

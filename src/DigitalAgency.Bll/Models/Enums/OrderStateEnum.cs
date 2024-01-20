@@ -1,13 +1,12 @@
-namespace DigitalAgency.Bll.Models.Enums
+namespace DigitalAgency.Bll.Models.Enums;
+
+public enum OrderStateEnum
 {
-    public enum OrderStateEnum
-    {
-        Unknown = 0,
-        New,
-        Hold,
-        Canceled,
-        InProgress,
-        Testing,
-        Done
-    }
+    Unknown = 0,
+    New,
+    Hold,
+    Canceled,
+    InProgress,
+    Testing,
+    Done,
 }

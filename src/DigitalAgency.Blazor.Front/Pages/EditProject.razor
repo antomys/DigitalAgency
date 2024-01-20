@@ -1,18 +1,16 @@
 ﻿@page "/editproject/{id}"
+@using Task = System.Threading.Tasks.Task
+@using DigitalAgency.Bll.Models
 @using System.Text.Json
 @using System.Text
-@using DigitalAgency.Bll.Models
-@using Microsoft.AspNetCore.Components
-@using Task = System.Threading.Tasks.Task
 @inject IHttpClientFactory _projectFactory;
 
 
-
-<link rel="stylesheet" href="css/bootstrap/bootstrap.min.css" />
-<link href="css/site.css" rel="stylesheet" />
+<link rel="stylesheet" href="css/bootstrap/bootstrap.min.css"/>
+<link href="css/site.css" rel="stylesheet"/>
 
 <h1>Update project</h1>
-<p />
+<p/>
 @if (Project == null)
 {
     <div>Loading...</div>
@@ -21,58 +19,62 @@ else
 {
     <table>
         <div class="form-group">
-            <input for="Name" disabled="true"class="form-control" @bind="@Project.Id" />
+            <input for="Name" disabled="true"class="form-control" @bind="@Project.Id"/>
         </div>
         <tr>
             <td>Project Name:</td>
-            <td><input @bind="ProjectName" /></td>
+            <td>
+                <input @bind="ProjectName"/>
+            </td>
         </tr>
         <tr>
             <td>Project Description:</td>
-            <td><input @bind="ProjectDescription" /></td>
+            <td>
+                <input @bind="ProjectDescription"/>
+            </td>
         </tr>
         <tr>
             <td>Project Link:</td>
-            <td><input @bind="ProjectLink" /></td>
+            <td>
+                <input @bind="ProjectLink"/>
+            </td>
         </tr>
     </table>
 }
 
-<p />
+<p/>
 <a class="btn btn-secondary" href="projects">Back</a>
 <button class="btn btn-primary" @onclick="PutProject">&#10004;Save</button> @Alert
-<p />
+<p/>
 
 
 @code {
     protected ProjectModel Project { get; set; }
     protected string ProjectName { get; set; }
-    protected  string ProjectDescription { get; set; }
+    protected string ProjectDescription { get; set; }
     protected string ProjectLink { get; set; }
     protected string Info;
     protected string Alert { get; set; }
 
-    [Parameter]
-    public string Id { get; set; }
-    
-    
-    protected override async Task OnInitializedAsync()
+    [Parameter] public string Id { get; set; }
+
+
+    override protected async Task OnInitializedAsync()
     {
-        var mechanic = _projectFactory.CreateClient();
-        var result = await mechanic.GetAsync("http://localhost:8443/Project/GetProject");
+        HttpClient mechanic = _projectFactory.CreateClient();
+        HttpResponseMessage result = await mechanic.GetAsync("http://localhost:8443/Project/GetProject");
 
         Info = await result.Content.ReadAsStringAsync();
-        var options = new JsonSerializerOptions
-        {
+        JsonSerializerOptions options = new JsonSerializerOptions {
             PropertyNameCaseInsensitive = true,
         };
-        var deserialized = JsonSerializer.Deserialize<List<ProjectModel>>(Info, options);
-        Project = deserialized?.Where(x=> x.Id.ToString() == Id).First();
+        List<ProjectModel> deserialized = JsonSerializer.Deserialize<List<ProjectModel>>(Info, options);
+        Project = deserialized?.Where(x => x.Id.ToString() == Id).First();
         ProjectName = Project?.ProjectName;
         ProjectDescription = Project?.ProjectDescription;
         ProjectLink = Project?.ProjectLink;
     }
-    
+
     protected async Task PutProject()
     {
         Alert = " ";
@@ -80,14 +82,14 @@ else
         {
             Alert = "Fill all fields!";
         }
-        
-        var client = _projectFactory.CreateClient();
+
+        HttpClient client = _projectFactory.CreateClient();
         Project.ProjectName = ProjectName;
         Project.ProjectDescription = ProjectDescription;
         Project.ProjectLink = ProjectLink;
-        var content = new StringContent(JsonSerializer.Serialize(Project), Encoding.UTF8, "application/json");
-        var response = await client.PutAsync("http://localhost:8443/Project/PutProject", content);
-        
+        StringContent content = new StringContent(JsonSerializer.Serialize(Project), Encoding.UTF8, "application/json");
+        HttpResponseMessage response = await client.PutAsync("http://localhost:8443/Project/PutProject", content);
+
         if (response.IsSuccessStatusCode)
         {
             Alert = "Project successfully added!";
@@ -97,4 +99,5 @@ else
             Alert = await response.Content.ReadAsStringAsync();
         }
     }
+
 }

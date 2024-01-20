@@ -1,17 +1,16 @@
 ﻿@page "/editclient/{id}"
-@using System.Text
-@using System.Text.Json
-@using DigitalAgency.Bll.Models
-@using DigitalAgency.Dal.Entities
 @using Task = System.Threading.Tasks.Task
+@using DigitalAgency.Bll.Models
+@using System.Text.Json
+@using System.Text
 @inject IHttpClientFactory _clientFactory;
 
 
-<link rel="stylesheet" href="css/bootstrap/bootstrap.min.css" />
-<link href="css/site.css" rel="stylesheet" />
+<link rel="stylesheet" href="css/bootstrap/bootstrap.min.css"/>
+<link href="css/site.css" rel="stylesheet"/>
 
 <h1>Update client</h1>
-<p />
+<p/>
 @if (Client == null)
 {
     <div>Loading...</div>
@@ -20,31 +19,39 @@ else
 {
     <table>
         <div class="form-group">
-            <input for="Name" disabled="true" class="form-control" @bind="@Client.Id" />
+            <input for="Name" disabled="true" class="form-control" @bind="@Client.Id"/>
         </div>
         <tr>
             <td>First name:</td>
-            <td><input @bind="FirstName" /></td>
+            <td>
+                <input @bind="FirstName"/>
+            </td>
         </tr>
         <tr>
             <td>Middle name:</td>
-            <td><input @bind="MiddleName" /></td>
+            <td>
+                <input @bind="MiddleName"/>
+            </td>
         </tr>
         <tr>
             <td>Last name:</td>
-            <td><input @bind="LastName" /></td>
+            <td>
+                <input @bind="LastName"/>
+            </td>
         </tr>
         <tr>
             <td>Phone number:</td>
-            <td><input @bind="PhoneNumber" /></td>
+            <td>
+                <input @bind="PhoneNumber"/>
+            </td>
         </tr>
     </table>
 }
 
-<p />
+<p/>
 <a class="btn btn-secondary" href="clients">Back</a>
 <button class="btn btn-primary" @onclick="UpdateClientAsync">&#10004;Save</button> @Alert
-<p />
+<p/>
 
 @code {
     protected ClientModel Client { get; set; }
@@ -55,22 +62,20 @@ else
     protected string Alert { get; set; }
     protected string Info;
 
-    [Parameter]
-    public string Id { get; set; }
-    
-    
-    protected override async Task OnInitializedAsync()
+    [Parameter] public string Id { get; set; }
+
+
+    override protected async Task OnInitializedAsync()
     {
-        var mechanic = _clientFactory.CreateClient();
-        var result = await mechanic.GetAsync("http://localhost:8443/Client/GetClient");
+        HttpClient mechanic = _clientFactory.CreateClient();
+        HttpResponseMessage result = await mechanic.GetAsync("http://localhost:8443/Client/GetClient");
 
         Info = await result.Content.ReadAsStringAsync();
-        var options = new JsonSerializerOptions
-        {
+        JsonSerializerOptions options = new JsonSerializerOptions {
             PropertyNameCaseInsensitive = true,
         };
-        var deserialized = JsonSerializer.Deserialize<List<ClientModel>>(Info, options);
-        Client = deserialized?.Where(x=>x.Id.ToString() == Id).First();
+        List<ClientModel> deserialized = JsonSerializer.Deserialize<List<ClientModel>>(Info, options);
+        Client = deserialized?.Where(x => x.Id.ToString() == Id).First();
         FirstName = Client?.FirstName;
         LastName = Client?.LastName;
         MiddleName = Client?.MiddleName;
@@ -84,14 +89,14 @@ else
         {
             Alert = "Fill all fields!";
         }
-        var client = _clientFactory.CreateClient();
+        HttpClient client = _clientFactory.CreateClient();
         Client.FirstName = FirstName;
         Client.LastName = LastName;
         Client.MiddleName = MiddleName;
         Client.PhoneNumber = PhoneNumber;
-        var content = new StringContent(JsonSerializer.Serialize(Client), Encoding.UTF8, "application/json");
-        var response = await client.PutAsync("http://localhost:8443/Client/PutClient", content);
-        
+        StringContent content = new StringContent(JsonSerializer.Serialize(Client), Encoding.UTF8, "application/json");
+        HttpResponseMessage response = await client.PutAsync("http://localhost:8443/Client/PutClient", content);
+
         if (response.IsSuccessStatusCode)
         {
             Alert = "Client successfully added!";
@@ -101,4 +106,5 @@ else
             Alert = await response.Content.ReadAsStringAsync();
         }
     }
+
 }

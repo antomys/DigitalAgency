@@ -1,17 +1,17 @@
 ﻿@page "/editexecutor/{id}"
-@using System.Text
-@using System.Text.Json
+@using Task = System.Threading.Tasks.Task
 @using DigitalAgency.Bll.Models
 @using DigitalAgency.Bll.Models.Enums
-@using Task = System.Threading.Tasks.Task
+@using System.Text.Json
+@using System.Text
 @inject IHttpClientFactory _executorFactory;
 
 
-<link rel="stylesheet" href="css/bootstrap/bootstrap.min.css" />
-<link href="css/site.css" rel="stylesheet" />
+<link rel="stylesheet" href="css/bootstrap/bootstrap.min.css"/>
+<link href="css/site.css" rel="stylesheet"/>
 
 <h1>Update executor</h1>
-<p />
+<p/>
 @if (Executor == null)
 {
     <div>Loading...</div>
@@ -24,37 +24,44 @@ else
         </div>
         <tr>
             <td>First name:</td>
-            <td><input @bind="FirstName"/></td>
+            <td>
+                <input @bind="FirstName"/>
+            </td>
         </tr>
         <tr>
             <td>Middle name:</td>
-            <td><input @bind="MiddleName"/></td>
+            <td>
+                <input @bind="MiddleName"/>
+            </td>
         </tr>
         <tr>
             <td>Last name:</td>
-            <td><input @bind="LastName"/></td>
+            <td>
+                <input @bind="LastName"/>
+            </td>
         </tr>
         <tr>
             <td>Phone number:</td>
-            <td><input @bind="PhoneNumber"/></td>
+            <td>
+                <input @bind="PhoneNumber"/>
+            </td>
         </tr>
         <tr>
-           <td>Position:</td>
-                   <select class="custom-select" @onchange="OnPositionValueChanged" title="Region is required ">
-                       <option value="Select" selected disabled="disabled">Choose Position</option>
-                       @foreach (var car in Enum.GetNames(typeof(PositionsEnum)))
-                       {
-                           <option value="@car">@car</option>
-                       }
-                   </select>
+            <td>Position:</td>
+            <select class="custom-select" @onchange="OnPositionValueChanged" title="Region is required ">
+                <option value="Select" selected disabled="disabled">Choose Position</option>
+                @foreach (string car in Enum.GetNames(typeof(PositionsEnum)))
+                {
+                    <option value="@car">@car</option>
+                }
+            </select>
         </tr>
     </table>
-    
 }
-<p />
+<p/>
 <a class="btn btn-secondary" href="executors">Back</a>
 <button class="btn btn-primary" @onclick="UpdateClientAsync">&#10004;Save</button> @Alert
-<p />
+<p/>
 
 @code {
     protected ExecutorModel Executor { get; set; }
@@ -64,36 +71,33 @@ else
     protected string PhoneNumber { get; set; }
     protected string Alert { get; set; }
     protected string Info;
-    
-    [Parameter]  
-    public PositionsEnum ValuePosition { get; set; }
-    [Parameter]  
-    public EventCallback < PositionsEnum > ValuePositionChanged { get; set; }  
 
-    [Parameter]
-    public string Id { get; set; }
-    
+    [Parameter] public PositionsEnum ValuePosition { get; set; }
+
+    [Parameter] public EventCallback<PositionsEnum> ValuePositionChanged { get; set; }
+
+    [Parameter] public string Id { get; set; }
+
     private Task OnPositionValueChanged(ChangeEventArgs e)
     {
-        Enum.TryParse(typeof(PositionsEnum), e.Value.ToString(), true, out var tempPosition);
-        ValuePosition =  (PositionsEnum) (Enum.IsDefined(typeof(PositionsEnum), tempPosition)
+        Enum.TryParse(typeof(PositionsEnum), e.Value.ToString(), true, out object tempPosition);
+        ValuePosition = (PositionsEnum)(Enum.IsDefined(typeof(PositionsEnum), tempPosition)
             ? tempPosition
             : 0);
         return ValuePositionChanged.InvokeAsync(ValuePosition);
     }
-    
 
-    protected override async Task OnInitializedAsync()
+
+    override protected async Task OnInitializedAsync()
     {
-        var mechanic = _executorFactory.CreateClient();
-        var result = await mechanic.GetAsync("http://localhost:8443/Client/GetExecutor");
+        HttpClient mechanic = _executorFactory.CreateClient();
+        HttpResponseMessage result = await mechanic.GetAsync("http://localhost:8443/Client/GetExecutor");
 
         Info = await result.Content.ReadAsStringAsync();
-        var options = new JsonSerializerOptions
-        {
+        JsonSerializerOptions options = new JsonSerializerOptions {
             PropertyNameCaseInsensitive = true,
         };
-        var deserialized = JsonSerializer.Deserialize<List<ExecutorModel>>(Info, options);
+        List<ExecutorModel> deserialized = JsonSerializer.Deserialize<List<ExecutorModel>>(Info, options);
         Executor = deserialized?.Where(x => x.Id.ToString() == Id).First();
         FirstName = Executor?.FirstName;
         LastName = Executor?.LastName;
@@ -111,23 +115,22 @@ else
         }
         else
         {
-            var mechanic = _executorFactory.CreateClient();
-        
-            var newMechanic = new ExecutorModel
-            { 
-                Id = Executor.Id, 
-                FirstName = FirstName, 
-                MiddleName = MiddleName, 
-                LastName = LastName, 
+            HttpClient mechanic = _executorFactory.CreateClient();
+
+            ExecutorModel newMechanic = new ExecutorModel {
+                Id = Executor.Id,
+                FirstName = FirstName,
+                MiddleName = MiddleName,
+                LastName = LastName,
                 PhoneNumber = PhoneNumber,
                 Position = ValuePosition,
                 TelegramId = Executor.TelegramId,
-                ChatId = Executor.ChatId
+                ChatId = Executor.ChatId,
             };
-        
-            var content = new StringContent(JsonSerializer.Serialize(newMechanic), Encoding.UTF8, "application/json");
-            var response = await mechanic.PutAsync("http://localhost:8443/Client/PutExecutor", content);
-        
+
+            StringContent content = new StringContent(JsonSerializer.Serialize(newMechanic), Encoding.UTF8, "application/json");
+            HttpResponseMessage response = await mechanic.PutAsync("http://localhost:8443/Client/PutExecutor", content);
+
             if (response.IsSuccessStatusCode)
             {
                 Alert = "Executor successfully edited!!";
@@ -138,4 +141,5 @@ else
             }
         }
     }
+
 }
