@@ -1,10 +1,9 @@
 using System.Threading.Tasks;
 
-namespace DigitalAgency.Bll.Services
+namespace DigitalAgency.Bll.Services.Interfaces;
+
+public interface IEnumService
 {
-    public interface IEnumService
-    {
-        Task<string[]> GetStateEnum();
-        Task<string[]> GetPositionEnum();
-    }
+    Task<string[]> GetStateEnum();
+    Task<string[]> GetPositionEnum();
 }

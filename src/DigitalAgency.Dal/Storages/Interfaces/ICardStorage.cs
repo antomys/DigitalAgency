@@ -1,7 +1,4 @@
-﻿namespace DigitalAgency.Dal.Storages.Interfaces
-{
-    public interface ICardStorage
-    {
-    
-    }
-}
+﻿namespace DigitalAgency.Dal.Storages.Interfaces;
+
+public interface ICardStorage
+{ }

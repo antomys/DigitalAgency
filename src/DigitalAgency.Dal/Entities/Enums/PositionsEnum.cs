@@ -1,11 +1,10 @@
-namespace DigitalAgency.Dal.Entities.Enums
+namespace DigitalAgency.Dal.Entities.Enums;
+
+public enum PositionsEnum
 {
-    public enum PositionsEnum
-    {
-        Unknown = 0,
-        Designer,
-        Smm,
-        Copywriter,
-        Montage
-    }
+    Unknown = 0,
+    Designer,
+    Smm,
+    Copywriter,
+    Montage,
 }

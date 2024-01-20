@@ -1,19 +1,19 @@
 using System;
 using System.Threading.Tasks;
 using DigitalAgency.Bll.Models.Enums;
+using DigitalAgency.Bll.Services.Interfaces;
 
-namespace DigitalAgency.Bll.Services
+namespace DigitalAgency.Bll.Services;
+
+public class EnumService : IEnumService
 {
-    public class EnumService : IEnumService
+    public async Task<string[]> GetStateEnum()
     {
-        public async Task<string[]> GetStateEnum()
-        {
-            return await Task.FromResult(Enum.GetNames(typeof(OrderStateEnum)));
-        }
+        return await Task.FromResult(Enum.GetNames(typeof(OrderStateEnum)));
+    }
 
-        public async Task<string[]> GetPositionEnum()
-        {
-            return await Task.FromResult(Enum.GetNames(typeof(OrderStateEnum)));
-        }
+    public async Task<string[]> GetPositionEnum()
+    {
+        return await Task.FromResult(Enum.GetNames(typeof(OrderStateEnum)));
     }
 }

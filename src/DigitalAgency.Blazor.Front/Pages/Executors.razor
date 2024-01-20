@@ -1,19 +1,19 @@
 @page "/executors"
-@using System.Text.Json
-@using DigitalAgency.Bll.Models
 @using Task = System.Threading.Tasks.Task
+@using DigitalAgency.Bll.Models
+@using System.Text.Json
 @inject IHttpClientFactory _executorFactory;
 @inject NavigationManager _uriHelper;
 
 
-<link rel="stylesheet" href="css/bootstrap/bootstrap.min.css" />
-<link href="css/site.css" rel="stylesheet" />
+<link rel="stylesheet" href="css/bootstrap/bootstrap.min.css"/>
+<link href="css/site.css" rel="stylesheet"/>
 
 <h1>Executors</h1>
-<p />
+<p/>
 <a class="btn btn-primary" href="addexecutor">&#10002;Add Executor</a>
 
-<p />
+<p/>
 @if (ExecutorsList == null)
 {
     <div>Loading...</div>
@@ -22,19 +22,31 @@ else
 {
     <table class="table">
         <thead>
-            <tr>
-                <td><b>Id</b></td>
-                <td><b>First name</b></td>
-                <td><b>Middle name</b></td>
-                <td><b>Last name</b></td>
-                <td><b>Phone number</b></td>
-                <td><b>Position</b></td>
-            </tr>
+        <tr>
+            <td>
+                <b>Id</b>
+            </td>
+            <td>
+                <b>First name</b>
+            </td>
+            <td>
+                <b>Middle name</b>
+            </td>
+            <td>
+                <b>Last name</b>
+            </td>
+            <td>
+                <b>Phone number</b>
+            </td>
+            <td>
+                <b>Position</b>
+            </td>
+        </tr>
         </thead>
         <tbody>
 
-            @foreach (var executor in ExecutorsList)
-            {
+        @foreach (ExecutorModel executor in ExecutorsList)
+        {
             <tr>
                 <td>@executor.Id</td>
                 <td>@executor.FirstName</td>
@@ -46,44 +58,43 @@ else
                     <a class="nav-link" href="editexecutor/@executor.Id">
                         <span class="oi oi-pencil" aria-hidden="true"></span>Edit
                     </a>
-                    <a class="btn btn-primary"  @onclick="@(e => DeleteExecutor(executor.Id))">
+                    <a class="btn btn-primary" @onclick="@(e => DeleteExecutor(executor.Id))">
                         <span class="oi oi-trash" aria-hidden="true"></span>Delete
                     </a>
                 </td>
             </tr>
-            }
+        }
 
         </tbody>
     </table>
 }
 
-@code 
+@code
 {
     private List<ExecutorModel> ExecutorsList { get; set; }
     private string _info;
 
-    protected override async Task OnInitializedAsync()
+    override protected async Task OnInitializedAsync()
     {
-
-        var mechanic = _executorFactory.CreateClient();
-        var result = await mechanic.GetAsync("http://localhost:8443/Client/GetExecutor");
+        HttpClient mechanic = _executorFactory.CreateClient();
+        HttpResponseMessage result = await mechanic.GetAsync("http://localhost:8443/Client/GetExecutor");
 
         _info = await result.Content.ReadAsStringAsync();
-        var options = new JsonSerializerOptions
-        {
+        JsonSerializerOptions options = new JsonSerializerOptions {
             PropertyNameCaseInsensitive = true,
         };
-        var deserialized = JsonSerializer.Deserialize<List<ExecutorModel>>(_info, options);
-        ExecutorsList = deserialized?.Where(x=>x.FirstName != "NULL").ToList() ;
+        List<ExecutorModel> deserialized = JsonSerializer.Deserialize<List<ExecutorModel>>(_info, options);
+        ExecutorsList = deserialized?.Where(x => x.FirstName != "NULL").ToList();
     }
+
     private async Task DeleteExecutor(int id)
     {
-        var client = _executorFactory.CreateClient();
-        var result = await client.DeleteAsync($"http://localhost:8443/Client/DeleteExecutor?id={id}");
+        HttpClient client = _executorFactory.CreateClient();
+        HttpResponseMessage result = await client.DeleteAsync($"http://localhost:8443/Client/DeleteExecutor?id={id}");
 
         if (result.IsSuccessStatusCode)
         {
-            _uriHelper.NavigateTo(_uriHelper.Uri, forceLoad: true);
+            _uriHelper.NavigateTo(_uriHelper.Uri, true);
         }
     }
 

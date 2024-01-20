@@ -1,11 +1,10 @@
-namespace DigitalAgency.Bll.Models.Enums
+namespace DigitalAgency.Bll.Models.Enums;
+
+public enum PositionsEnum
 {
-    public enum PositionsEnum
-    {
-        Unknown = 0,
-        Designer,
-        Smm,
-        Copywriter,
-        Montage
-    }
+    Unknown = 0,
+    Designer,
+    Smm,
+    Copywriter,
+    Montage,
 }

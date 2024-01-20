@@ -5,34 +5,33 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Telegram.Bot.Types;
 
-namespace DigitalAgency.Api.Controllers
+namespace DigitalAgency.Api.Controllers;
+
+[ApiController]
+[Route("api/[controller]")]
+public class TelegramController : ControllerBase
 {
-    [ApiController]
-    [Route("api/[controller]")]
-    public class TelegramController : ControllerBase
+    readonly IBotService _botService;
+    readonly ILogger<TelegramController> _logger;
+
+    public TelegramController(ILogger<TelegramController> logger, IBotService botService)
     {
-        private readonly ILogger<TelegramController> _logger;
-        private readonly IBotService _botService;
+        _logger = logger;
+        _botService = botService;
+    }
 
-        public TelegramController(ILogger<TelegramController> logger, IBotService botService)
+    [HttpPost]
+    public async Task<IActionResult> TelegramProcess(Update update)
+    {
+        try
         {
-            _logger = logger;
-            _botService = botService;
+            await _botService.ProcessMessageAsync(update);
+            return Ok();
         }
-
-        [HttpPost]
-        public async Task<IActionResult> TelegramProcess(Update update)
+        catch (Exception exception)
         {
-            try
-            {
-                await _botService.ProcessMessageAsync(update);
-                return Ok();
-            }
-            catch (Exception exception)
-            {
-                _logger.LogWarning(exception.Message);
-                return Ok();
-            }
+            _logger.LogWarning(exception.Message);
+            return Ok();
         }
     }
 }
